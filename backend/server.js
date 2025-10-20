@@ -1,35 +1,57 @@
+// server.js
 import express from "express";
 import cors from "cors";
+import axios from "axios";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Tambahkan ini 👇
-app.get("/api/weather/:location", (req, res) => {
-  const { location } = req.params;
-
-  // Contoh data dummy
-  const data = {
-    balohan: {
-      temperature: 29,
-      waveHeight: 1.2,
-      windSpeed: 10,
-      status: "aman",
-    },
-    "ulee-lheue": {
-      temperature: 30,
-      waveHeight: 2.5,
-      windSpeed: 15,
-      status: "waspada",
-    },
-  };
-
-  if (!data[location]) {
-    return res.status(404).json({ error: "Lokasi tidak ditemukan" });
+// ✅ Endpoint Balohan - Fetch dari BMKG
+app.get("/api/weather/balohan", async (req, res) => {
+  try {
+    console.log("📍 Fetching Balohan data from BMKG...");
+    
+    const response = await axios.get(
+      "https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4=11.72.02.2005"
+    );
+    
+    console.log("✅ Balohan data received");
+    res.json(response.data);
+    
+  } catch (error) {
+    console.error("❌ Error Balohan:", error.message);
+    res.status(500).json({ 
+      error: "Gagal mengambil data Balohan",
+      details: error.message 
+    });
   }
+});
 
-  res.json(data[location]);
+// ✅ Endpoint Ulee Lheue - Fetch dari BMKG
+app.get("/api/weather/ulee-lheue", async (req, res) => {
+  try {
+    console.log("📍 Fetching Ulee Lheue data from BMKG...");
+    
+    const response = await axios.get(
+      "https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4=11.71.03.2002"
+    );
+    
+    console.log("✅ Ulee Lheue data received");
+    res.json(response.data);
+    
+  } catch (error) {
+    console.error("❌ Error Ulee Lheue:", error.message);
+    res.status(500).json({ 
+      error: "Gagal mengambil data Ulee Lheue",
+      details: error.message 
+    });
+  }
+});
+
+// Test endpoint
+app.get("/", (req, res) => {
+  res.json({ message: "Backend berjalan dengan baik" });
 });
 
 // Jalankan server

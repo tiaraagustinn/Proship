@@ -1,18 +1,48 @@
-// src/routes/weatherCardRoutes.js
-const express = require('express');
-const router = express.Router();
-const axios = require('axios');
+// routes/weather.js
 
-// Endpoint untuk ambil data BMKG
-router.get('/', async (req, res) => {
+const express = require('express');
+const axios = require('axios');
+const router = express.Router();
+
+// Endpoint untuk Pelabuhan Balohan
+router.get('/balohan', async (req, res) => {
   try {
-    // Default lokasi: Balohan
-    const url = 'https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4=11.71.03.2002';
-    const { data } = await axios.get(url);
-    res.json(data);
+    console.log('📍 Fetching Balohan data from BMKG...');
+    
+    const response = await axios.get(
+      'https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4=11.72.02.2005'
+    );
+    
+    console.log('✅ Balohan data received:', response.data);
+    res.json(response.data);
+    
   } catch (error) {
-    console.error('Gagal fetch BMKG:', error.message);
-    res.status(500).json({ error: 'Gagal mengambil data dari BMKG' });
+    console.error('❌ Error Balohan:', error.message);
+    res.status(500).json({ 
+      error: 'Gagal mengambil data Balohan',
+      details: error.message 
+    });
+  }
+});
+
+// Endpoint untuk Pelabuhan Ulee Lheue
+router.get('/ulee-lheue', async (req, res) => {
+  try {
+    console.log('📍 Fetching Ulee Lheue data from BMKG...');
+    
+    const response = await axios.get(
+      'https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4=11.71.03.2002'
+    );
+    
+    console.log('✅ Ulee Lheue data received:', response.data);
+    res.json(response.data);
+    
+  } catch (error) {
+    console.error('❌ Error Ulee Lheue:', error.message);
+    res.status(500).json({ 
+      error: 'Gagal mengambil data Ulee Lheue',
+      details: error.message 
+    });
   }
 });
 

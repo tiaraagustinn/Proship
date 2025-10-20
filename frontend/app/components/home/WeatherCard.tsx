@@ -23,7 +23,7 @@ const WeatherCard: React.FC<WeatherCardProps> = ({
   humidity,
   time,
   condition,
-  weatherIcon = '☀️',
+  weatherIcon,
   backgroundImage
 }) => {
   return (

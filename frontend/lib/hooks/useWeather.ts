@@ -6,18 +6,43 @@ import { useState, useEffect } from 'react';
 
 interface WeatherData {
   lokasi: {
+    adm1?: string;
+    adm2?: string;
+    adm3?: string;
+    adm4?: string;
     provinsi: string;
-    kota: string;
-    kelurahan: string;
+    kota?: string;
+    kotkab?: string;
+    kecamatan?: string;
+    desa?: string;
+    kelurahan?: string;
+    lon?: number;
+    lat?: number;
+    timezone?: string;
   };
   data: Array<{
-    local_datetime: string;
-    t: number;
-    hu: number;
-    weather_desc: string;
-    ws: number;
-    wd: string;
-    tcc: number;
+    lokasi?: any;
+    cuaca: Array<{
+      datetime?: string;
+      local_datetime?: string;
+      utc_datetime?: string;
+      t?: number;
+      hu?: number;
+      weather?: string;
+      weather_desc?: string;
+      weather_desc_en?: string;
+      ws?: number;
+      wd?: string;
+      wd_deg?: number;
+      wd_to?: string;
+      tcc?: number;
+      tp?: number;
+      vs?: number;
+      vs_text?: string;
+      time_index?: number;
+      analysis_date?: string;
+      image?: string;
+    }>;
   }>;
 }
 
@@ -45,8 +70,11 @@ export const useWeather = (endpoint: string) => {
         const result = await response.json();
         
         console.log(`✅ Data berhasil diambil:`, result);
-        console.log(`📋 Struktur data:`, JSON.stringify(result, null, 2));
-        console.log(`🔍 First item:`, result.data ? result.data[0] : 'No data array');
+        console.log(`📋 Full JSON:`, JSON.stringify(result, null, 2));
+        console.log(`🔍 Keys:`, Object.keys(result));
+        console.log(`🔍 Has data?`, result.data);
+        console.log(`🔍 First item:`, result.data ? result.data[0] : 'No data');
+        console.log(`🔍 First item keys:`, result.data && result.data[0] ? Object.keys(result.data[0]) : 'No keys');
         
         setData(result);
         setError(null);

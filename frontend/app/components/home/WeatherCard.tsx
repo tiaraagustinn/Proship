@@ -28,14 +28,14 @@ const WeatherCard: React.FC<WeatherCardProps> = ({
 }) => {
   return (
     <div
-      className="relative text-white w-full min-h-[200px]"
+      className="relative text-white w-full min-h-[250px]"
       style={{
         backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
         backgroundSize: 'cover',
         backgroundPosition: 'center'
       }}
     >
-      <div className="absolute inset-0 bg-black/30"></div>
+      <div className="absolute inset-0 bg-black/50"></div>
 
       <div className="relative flex flex-col md:flex-row items-start md:items-center gap-4 p-6 md:p-8">
         <div className="flex-1">

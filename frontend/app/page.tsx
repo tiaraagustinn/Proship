@@ -13,14 +13,14 @@ export default function Home() {
       <Header />
       <HeroSection />
       
-      <div className="container bg-white mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="container bg-white mx-auto px-40 py-15">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-7 items-center">
           <WeatherSection
             pelabuhan="balohan"
             title="Pelabuhan Balohan"
             icon="⚓"
             city="Sabang"
-            backgroundImage="/images/balohan-bg.png" // Opsional
+            backgroundImage="/images/balohan-bg4.png" // Opsional
           />
           <WeatherSection
             pelabuhan="ulee-lheue"

@@ -1,43 +1,38 @@
-// server.js
-
-const express = require('express');
-const cors = require('cors');
-const axios = require('axios');
-require('dotenv').config();
+import express from "express";
+import cors from "cors";
 
 const app = express();
-
-// Middleware
-app.use(cors({
-  origin: 'http://localhost:3000',
-  credentials: true
-}));
+app.use(cors());
 app.use(express.json());
 
-// Import routes
-const weatherRoutes = require('./src/routes/weatherCardRoutes');
+// Tambahkan ini 👇
+app.get("/api/weather/:location", (req, res) => {
+  const { location } = req.params;
 
-// Routes
-app.use('/api/weather', weatherRoutes);
+  // Contoh data dummy
+  const data = {
+    balohan: {
+      temperature: 29,
+      waveHeight: 1.2,
+      windSpeed: 10,
+      status: "aman",
+    },
+    "ulee-lheue": {
+      temperature: 30,
+      waveHeight: 2.5,
+      windSpeed: 15,
+      status: "waspada",
+    },
+  };
 
-// Test route
-app.get('/', (req, res) => {
-  res.json({ message: 'Server berjalan dengan baik' });
+  if (!data[location]) {
+    return res.status(404).json({ error: "Lokasi tidak ditemukan" });
+  }
+
+  res.json(data[location]);
 });
 
-// Error handling
-app.use((err, req, res, next) => {
-  console.error('❌ Error:', err);
-  res.status(500).json({ error: 'Internal server error' });
-});
-
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ error: 'Endpoint tidak ditemukan' });
-});
-
-// Start server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`✅ Server berjalan di http://localhost:${PORT}`);
+// Jalankan server
+app.listen(5000, () => {
+  console.log("✅ Server backend berjalan di http://localhost:5000");
 });

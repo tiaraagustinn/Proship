@@ -1,6 +1,6 @@
 import Header from '@/app/components/Header';
-import SeaWeatherMap from '@/app/components/SeaWeatherMap';
-import WeatherForecastSection from '@/app/components/WeatherForecastSection';
+import SeaWeatherMap from '@/app/components/home/SeaWeatherMap';
+import WeatherForecastSection from '@/app/components/cuacaLaut/WeatherForecastSection';
 import Footer from '@/app/components/Footer';
 
 export default function CuacaLautPage() {

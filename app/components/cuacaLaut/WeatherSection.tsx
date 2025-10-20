@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import WeatherCard from './WeatherCard';
+import WeatherCard from '../home/WeatherCard';
 
 const WeatherSection = () => {
   return (

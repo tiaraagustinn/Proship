@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 
 interface ForecastCard {
   day: string;
@@ -73,9 +74,9 @@ const WeatherForecastSection = () => {
         {/* Section Header */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-900">Perairan Sabang Banda Aceh</h2>
-          <a href="#" className="text-blue-600 hover:text-blue-800 font-medium">
+          <Link href="/user/detail-cuaca" className="text-blue-600 hover:text-blue-800 font-medium">
             Lebih detail &gt;
-          </a>
+          </Link>
         </div>
 
         {/* Main Forecast Card */}

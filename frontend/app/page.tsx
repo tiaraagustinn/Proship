@@ -1,6 +1,6 @@
 import Header from '@/app/components/Header';
 import HeroSection from '@/app/components/home/HeroSection';
-import WeatherSection from '@/app/components/cuacaLaut/WeatherSection';
+import { WeatherSection } from '@/app/components/cuacaLaut/WeatherSection';
 import ScheduleTable from '@/app/components/home/ScheduleTable';
 import SeaWeatherMap from '@/app/components/home/SeaWeatherMap';
 import Footer from '@/app/components/Footer';
@@ -10,7 +10,16 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50">
       <Header />
       <HeroSection />
-      <WeatherSection />
+       <WeatherSection
+          pelabuhan="balohan"
+          title="Pelabuhan Balohan"
+          icon="⚓"
+        />
+        <WeatherSection
+          pelabuhan="ulee-lheue"
+          title="Pelabuhan Ulee Lheue"
+          icon="🌊"
+        />
       <ScheduleTable />
       <SeaWeatherMap />
       <Footer />

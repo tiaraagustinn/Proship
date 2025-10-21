@@ -1,22 +1,23 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 interface ForecastCard {
-  day: string;
-  date: string;
-  time: string;
-  hoursFromNow: number;
-  condition: string;
-  conditionIcon: string;
-  windDirection: string;
+  validFrom: string;
+  validTo: string;
+  timeDesc: string;
+  weather: string;
+  weatherDesc: string;
+  warningDesc: string;
+  waveCat: string;
+  waveDesc: string;
+  windFrom: string;
+  windTo: string;
+  windSpeedMin: number;
+  windSpeedMax: number;
+  weatherIcon: string;
   windStrength: string;
-  windSpeed: string;
-  currentSpeed: string;
-  currentDirection: string;
-  temperature: number;
-  humidity: number;
-  waveHeight: string;
 }
 
 const WeatherForecastSection = () => {
@@ -55,155 +56,127 @@ const WeatherForecastSection = () => {
 
   const processWeatherData = (data: any) => {
     try {
-      // Struktur data BMKG Maritim biasanya seperti:
-      // { area: "...", issued: "...", data: [...] }
-      
-      let forecasts: ForecastCard[] = [];
-      const now = new Date();
-      
-      // Coba berbagai kemungkinan struktur data
-      const weatherArray = data.data || data.forecast || data.cuaca || [];
+      const weatherArray = data.data || [];
       
       if (Array.isArray(weatherArray) && weatherArray.length > 0) {
-        // Ambil maksimal 3 data pertama untuk ditampilkan
-        forecasts = weatherArray.slice(0, 3).map((item: any, index: number) => {
-          // Hitung jam dari sekarang berdasarkan pattern 12-12-24-24
-          const hoursArray = [0, 12, 24, 48];
-          const hoursFromNow = hoursArray[index] || index * 12;
-          
-          const forecastDate = new Date(now.getTime() + hoursFromNow * 60 * 60 * 1000);
-          
-          return {
-            day: formatDay(forecastDate),
-            date: formatDate(forecastDate),
-            time: formatTime(forecastDate),
-            hoursFromNow: hoursFromNow,
-            condition: item.cuaca || item.weather || item.condition || 'N/A',
-            conditionIcon: getWeatherIcon(item.cuaca || item.weather),
-            windDirection: item.arah_angin || item.wind_direction || item.windDirection || 'N/A',
-            windStrength: getWindStrength(item.kecepatan_angin || item.wind_speed),
-            windSpeed: formatWindSpeed(item.kecepatan_angin || item.wind_speed),
-            currentSpeed: formatCurrentSpeed(item.kecepatan_arus || item.current_speed),
-            currentDirection: item.arah_arus || item.current_direction || 'N/A',
-            temperature: parseInt(item.suhu || item.temperature || item.t || '0') || 28,
-            humidity: parseInt(item.kelembaban || item.humidity || item.hu || '0') || 80,
-            waveHeight: item.tinggi_gelombang || item.wave_height || 'N/A'
-          };
-        });
+        const forecasts = weatherArray.map((item: any) => ({
+          validFrom: item.valid_from || '',
+          validTo: item.valid_to || '',
+          timeDesc: item.time_desc || '',
+          weather: item.weather || 'N/A',
+          weatherDesc: item.weather_desc || '',
+          warningDesc: item.warning_desc || 'NIL',
+          waveCat: item.wave_cat || '',
+          waveDesc: item.wave_desc || 'N/A',
+          windFrom: item.wind_from || 'N/A',
+          windTo: item.wind_to || '',
+          windSpeedMin: item.wind_speed_min || 0,
+          windSpeedMax: item.wind_speed_max || 0,
+          weatherIcon: getWeatherIcon(item.weather || ''),
+          windStrength: getWindStrength(item.wind_speed_max || 0)
+        }));
+        
+        setForecastData(forecasts);
       }
       
-      // Fallback jika tidak ada data
-      if (forecasts.length === 0) {
-        forecasts = generateFallbackData();
-      }
-      
-      setForecastData(forecasts);
       setLocationInfo({
-        name: data.wilayah || data.area || 'Perairan Sabang Banda Aceh',
-        issued: data.issued || data.dikeluarkan || now.toISOString(),
-        startTime: forecasts[0]?.time || 'N/A',
-        endTime: forecasts[forecasts.length - 1]?.time || 'N/A'
+        name: data.name || 'Perairan Sabang - Banda Aceh',
+        issued: data.issued || ''
       });
       
     } catch (err) {
       console.error('Error processing data:', err);
-      setForecastData(generateFallbackData());
+      setError('Gagal memproses data cuaca');
     }
   };
 
-  const generateFallbackData = (): ForecastCard[] => {
-    const now = new Date();
-    return [0, 12, 24].map((hours, index) => {
-      const forecastDate = new Date(now.getTime() + hours * 60 * 60 * 1000);
-      return {
-        day: formatDay(forecastDate),
-        date: formatDate(forecastDate),
-        time: formatTime(forecastDate),
-        hoursFromNow: hours,
-        condition: 'Berawan',
-        conditionIcon: '☁️',
-        windDirection: 'Barat Daya',
-        windStrength: 'Sedang',
-        windSpeed: '15 - 25 knot',
-        currentSpeed: '50 cm/s',
-        currentDirection: 'Barat',
-        temperature: 28,
-        humidity: 80,
-        waveHeight: '1.25 - 2.5 m'
-      };
-    });
-  };
-
-  const formatDay = (date: Date): string => {
-    const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-    return days[date.getDay()];
-  };
-
-  const formatDate = (date: Date): string => {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-    return `${date.getDate()} ${months[date.getMonth()]}`;
-  };
-
-  const formatTime = (date: Date): string => {
-    return `${String(date.getHours()).padStart(2, '0')}.${String(date.getMinutes()).padStart(2, '0')}`;
-  };
-
-  const getWeatherIcon = (condition: string): string => {
-    if (!condition) return '🌤️';
-    const lower = condition.toLowerCase();
+  const getWeatherIcon = (weather: string): string => {
+    if (!weather) return '🌤️';
+    const lower = weather.toLowerCase();
     if (lower.includes('cerah')) return '☀️';
     if (lower.includes('berawan tebal')) return '☁️';
     if (lower.includes('berawan')) return '⛅';
     if (lower.includes('hujan lebat')) return '🌧️';
-    if (lower.includes('hujan')) return '🌦️';
+    if (lower.includes('hujan ringan')) return '🌦️';
+    if (lower.includes('hujan')) return '🌧️';
     if (lower.includes('petir')) return '⛈️';
     if (lower.includes('badai')) return '🌪️';
     return '🌤️';
   };
 
-  const getWindStrength = (speed: any): string => {
-    const numSpeed = parseInt(speed);
-    if (isNaN(numSpeed)) return 'Sedang';
-    if (numSpeed < 10) return 'Lemah';
-    if (numSpeed < 20) return 'Sedang';
-    if (numSpeed < 30) return 'Kuat';
+  const getWindStrength = (maxSpeed: number): string => {
+    if (maxSpeed < 10) return 'Lemah';
+    if (maxSpeed < 20) return 'Sedang';
+    if (maxSpeed < 30) return 'Kuat';
     return 'Sangat Kuat';
   };
 
-  const formatWindSpeed = (speed: any): string => {
-    if (!speed) return 'N/A';
-    if (typeof speed === 'string' && speed.includes('-')) return speed;
-    const num = parseInt(speed);
-    if (isNaN(num)) return 'N/A';
-    return `${num - 2} - ${num + 5} knot`;
-  };
-
-  const formatCurrentSpeed = (speed: any): string => {
-    if (!speed) return 'N/A';
-    if (typeof speed === 'string' && speed.includes('cm/s')) return speed;
-    const num = parseInt(speed);
-    if (isNaN(num)) return 'N/A';
-    return `${num} cm/s`;
-  };
-
-  const formatDateTimeID = (dateStr: string): string => {
-    if (!dateStr) return 'N/A';
+  const formatDateTime = (utcDateTime: string): string => {
+    if (!utcDateTime) return '';
     try {
-      const date = new Date(dateStr);
-      return date.toLocaleString('id-ID', {
-        weekday: 'short',
-        day: 'numeric',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZone: 'Asia/Jakarta'
-      }) + ' WIB';
-    } catch {
-      return dateStr;
+      // Format: "2025-10-20 12:00 UTC"
+      const [datePart, timePart] = utcDateTime.split(' ');
+      const [year, month, day] = datePart.split('-');
+      const [hour, minute] = timePart.split(':');
+      
+      const date = new Date(Date.UTC(
+        parseInt(year),
+        parseInt(month) - 1,
+        parseInt(day),
+        parseInt(hour),
+        parseInt(minute)
+      ));
+      
+      // Convert to WIB (UTC+7)
+      const wibDate = new Date(date.getTime() + 7 * 60 * 60 * 1000);
+      
+      const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+      
+      const dayName = days[wibDate.getUTCDay()];
+      const dayNum = wibDate.getUTCDate();
+      const monthName = months[wibDate.getUTCMonth()];
+      const hours = String(wibDate.getUTCHours()).padStart(2, '0');
+      const minutes = String(wibDate.getUTCMinutes()).padStart(2, '0');
+      
+      return `${dayName}, ${dayNum} ${monthName}, ${hours}.${minutes}`;
+    } catch (err) {
+      console.error('Error formatting date:', err);
+      return utcDateTime;
     }
   };
 
-  // Loading State
+  const formatIssuedDate = (utcDateTime: string): string => {
+    if (!utcDateTime) return '';
+    try {
+      const [datePart, timePart] = utcDateTime.split(' ');
+      const [year, month, day] = datePart.split('-');
+      const [hour, minute] = timePart.split(':');
+      
+      const date = new Date(Date.UTC(
+        parseInt(year),
+        parseInt(month) - 1,
+        parseInt(day),
+        parseInt(hour),
+        parseInt(minute)
+      ));
+      
+      const wibDate = new Date(date.getTime() + 7 * 60 * 60 * 1000);
+      
+      return wibDate.toLocaleString('id-ID', {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'UTC'
+      }) + ' WIB';
+    } catch (err) {
+      return utcDateTime;
+    }
+  };
+
   if (loading) {
     return (
       <section className="py-8 bg-gray-50">
@@ -219,7 +192,6 @@ const WeatherForecastSection = () => {
     );
   }
 
-  // Error State
   if (error) {
     return (
       <section className="py-8 bg-gray-50">
@@ -228,7 +200,6 @@ const WeatherForecastSection = () => {
             <div className="text-4xl mb-3">⚠️</div>
             <p className="text-red-600 font-semibold mb-2">Gagal Memuat Data Cuaca Maritim</p>
             <p className="text-red-500 text-sm mb-4">{error}</p>
-            <p className="text-gray-600 text-xs mb-4">Pastikan backend server berjalan di http://localhost:5000</p>
             <button
               onClick={fetchWeatherData}
               className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors inline-flex items-center space-x-2"
@@ -247,143 +218,124 @@ const WeatherForecastSection = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">
-            {locationInfo?.name || 'Perairan Sabang Banda Aceh'}
-          </h2>
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={fetchWeatherData}
-              className="text-blue-600 hover:text-blue-800 font-medium flex items-center space-x-1 transition-colors"
-              title="Refresh data"
-            >
-              <span>🔄</span>
-              <span className="hidden sm:inline">Refresh</span>
-            </button>
-            <a href="/user/detail-cuaca" className="text-blue-600 hover:text-blue-800 font-medium">
-              Lebih detail &gt;
-            </a>
-          </div>
+          <h2 className="text-2xl font-bold text-gray-900">Prakiraan Cuaca Maritim</h2>
         </div>
 
-        {/* Main Forecast Card */}
-        <div className="mb-6">
-          <div className="bg-gradient-to-br from-blue-800 to-blue-900 rounded-2xl p-6 text-white relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-900/50 to-transparent"></div>
-            <div className="relative z-10">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="text-2xl font-bold mb-2">
-                    {locationInfo?.name || 'Perairan Sabang Banda Aceh'}
-                  </h3>
-                  <p className="text-blue-200 text-sm">Prakiraan Cuaca Perairan</p>
-                </div>
-                <div className="bg-blue-700/50 backdrop-blur-sm px-3 py-1 rounded-lg text-xs">
-                  🌊 Data BMKG
-                </div>
-              </div>
-              
-              <div className="space-y-2 mb-6">
-                {forecastData.length > 0 && (
-                  <>
-                    <div className="flex items-center space-x-4 text-sm">
-                      <span className="text-blue-200">Mulai:</span>
-                      <span className="font-medium">
-                        {forecastData[0].day}, {forecastData[0].date}, {forecastData[0].time} WIB
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-4 text-sm">
-                      <span className="text-blue-200">Sampai:</span>
-                      <span className="font-medium">
-                        {forecastData[forecastData.length - 1].day}, {forecastData[forecastData.length - 1].date}, {forecastData[forecastData.length - 1].time} WIB
-                      </span>
-                    </div>
-                  </>
-                )}
-                {locationInfo?.issued && (
-                  <div className="flex items-center space-x-4 text-sm">
-                    <span className="text-blue-200">Dikeluarkan:</span>
-                    <span className="font-medium">{formatDateTimeID(locationInfo.issued)}</span>
-                  </div>
-                )}
-              </div>
-              
-              <p className="text-blue-200 text-sm">💡 Geser untuk melihat prakiraan selengkapnya</p>
+        {/* Location Info */}
+        {locationInfo && (
+          <div className="mb-4">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-semibold text-gray-800">
+                {locationInfo.name}
+                {locationInfo.code && <span className="text-sm text-gray-500 ml-2">({locationInfo.code})</span>}
+              </h3>
+              <Link href="/user/detail-cuaca" className="text-blue-600 hover:text-blue-800 font-medium">
+            Lebih detail &gt;
+          </Link>
             </div>
+            
+            {locationInfo.issued && (
+              <p className="text-sm text-gray-600">
+                 {formatIssuedDate(locationInfo.issued)}
+              </p>
+            )}
+            {locationInfo.info && (
+              <p className="text-xs text-blue-600 mt-1">ℹ️ {locationInfo.info}</p>
+            )}
           </div>
-        </div>
+        )}
 
-        {/* Hourly Forecast Cards */}
+        {/* Horizontal Scrollable Cards */}
         {forecastData.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {forecastData.map((forecast, index) => (
-              <div key={index} className="bg-yellow-50 rounded-2xl p-6 border border-yellow-200 hover:shadow-lg transition-shadow">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <div className="flex items-center space-x-2 mb-2">
-                      <span className="text-2xl">{forecast.conditionIcon}</span>
-                      <span className="font-semibold text-gray-800">{forecast.condition}</span>
+          <>
+            <div className="overflow-x-auto pb-4 -mx-4 px-4">
+              <div className="flex space-x-4 min-w-max">
+                {forecastData.map((forecast, index) => (
+                  <div 
+                    key={index} 
+                    className="bg-gradient-to-b from-yellow-50 to-white rounded-lg border-t-4 border-yellow-400 shadow-md hover:shadow-lg transition-shadow w-72 flex-shrink-0"
+                  >
+                    {/* Header dengan waktu */}
+                    <div className="bg-white px-4 py-3 border-b border-gray-200">
+                      <p className="font-semibold text-gray-900 text-sm">
+                        {formatDateTime(forecast.validFrom)}
+                      </p>
+                      <p className="text-xs text-blue-600 font-medium mt-1">
+                        {forecast.timeDesc}
+                      </p>
                     </div>
-                    <p className="text-sm text-gray-600">
-                      {forecast.day}, {forecast.date}, {forecast.time} WIB
-                    </p>
-                    <p className="text-xs text-blue-600 font-medium mt-1">
-                      {forecast.hoursFromNow === 0 ? 'Sekarang' : `${forecast.hoursFromNow} jam lagi`}
-                    </p>
-                  </div>
-                </div>
 
-                <div className="space-y-3">
-                  {/* Wind */}
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600 flex items-center">
-                      <span className="mr-1">💨</span> Angin:
-                    </span>
-                    <div className="text-right">
-                      <p className="text-sm font-medium text-gray-800">{forecast.windDirection}</p>
-                      <p className="text-xs text-gray-600">{forecast.windStrength} ({forecast.windSpeed})</p>
+                    {/* Weather Icon & Condition */}
+                    <div className="px-4 py-4 text-center border-b border-gray-200">
+                      <div className="text-5xl mb-2">{forecast.weatherIcon}</div>
+                      <p className="font-semibold text-gray-800 text-sm">{forecast.weather}</p>
+                    </div>
+
+                    {/* Wind & Wave Info */}
+                    <div className="px-4 py-3 space-y-2">
+                      {/* Labels */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <span className="mr-2">💨</span>
+                          <span className="text-sm text-gray-600">Angin</span>
+                        </div>
+                        <div className="flex items-center">
+                          <span className="mr-2">〰️</span>
+                          <span className="text-sm text-gray-600">Gelombang</span>
+                        </div>
+                      </div>
+
+                      {/* Direction & Height */}
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 pr-2">
+                          <p className="text-sm font-medium text-gray-800">
+                            {forecast.windFrom}
+                            {forecast.windTo && forecast.windTo !== forecast.windFrom && (
+                              <span className="text-gray-600"> - {forecast.windTo}</span>
+                            )}
+                          </p>
+                        </div>
+                        <div className="flex-1 text-right pl-2">
+                          <p className="text-sm font-medium text-gray-800">{forecast.waveDesc}</p>
+                        </div>
+                      </div>
+
+                      {/* Strength Badge & Wave Category */}
+                      <div className="flex items-center justify-between">
+                        <span className="inline-block bg-yellow-200 text-yellow-800 text-xs font-semibold px-3 py-1 rounded">
+                          {forecast.windStrength}
+                        </span>
+                        {forecast.waveCat && (
+                          <span className="text-xs text-gray-600">
+                            Gelombang: {forecast.waveCat}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Speed details */}
+                      <div className="text-xs text-gray-600">
+                        <p>💨 {forecast.windSpeedMin} - {forecast.windSpeedMax} knot</p>
+                      </div>
+                    </div>
+
+                    {/* Weather Description */}
+                    <div className="px-4 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+                      <p className="text-xs text-gray-700 leading-relaxed">
+                        {forecast.weatherDesc}
+                      </p>
+                      {forecast.warningDesc && forecast.warningDesc !== 'NIL' && (
+                        <div className="mt-2 bg-red-50 border border-red-200 rounded px-2 py-1">
+                          <p className="text-xs text-red-700 font-semibold">
+                            ⚠️ {forecast.warningDesc}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
-
-                  {/* Current */}
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600 flex items-center">
-                      <span className="mr-1">🌊</span> Arus:
-                    </span>
-                    <div className="text-right">
-                      <p className="text-sm font-medium text-gray-800">{forecast.currentSpeed}</p>
-                      <p className="text-xs text-gray-600">dari {forecast.currentDirection}</p>
-                    </div>
-                  </div>
-
-                  {/* Wave Height */}
-                  {forecast.waveHeight && forecast.waveHeight !== 'N/A' && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600 flex items-center">
-                        <span className="mr-1">〰️</span> Gelombang:
-                      </span>
-                      <span className="text-sm font-medium text-gray-800">{forecast.waveHeight}</span>
-                    </div>
-                  )}
-
-                  {/* Temperature */}
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600 flex items-center">
-                      <span className="mr-1">🌡️</span> Suhu:
-                    </span>
-                    <span className="text-lg font-bold text-gray-800">{forecast.temperature}°C</span>
-                  </div>
-
-                  {/* Humidity */}
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600 flex items-center">
-                      <span className="mr-1">💧</span> Kelembapan:
-                    </span>
-                    <span className="text-sm font-medium text-gray-800">{forecast.humidity}%</span>
-                  </div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          </>
         ) : (
           <div className="text-center py-12 bg-white rounded-2xl">
             <div className="text-4xl mb-3">🌊</div>
@@ -391,24 +343,6 @@ const WeatherForecastSection = () => {
             <p className="text-gray-400 text-sm mt-2">Silakan coba lagi nanti</p>
           </div>
         )}
-
-        {/* Scroll indicator */}
-        {forecastData.length > 0 && (
-          <div className="mt-6 flex justify-center">
-            <div className="flex space-x-2">
-              <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-              <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-              <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-            </div>
-          </div>
-        )}
-
-        {/* BMKG Credit */}
-        <div className="mt-6 text-center">
-          <p className="text-xs text-gray-500">
-            ℹ️ Data bersumber dari BMKG (Badan Meteorologi, Klimatologi, dan Geofisika)
-          </p>
-        </div>
       </div>
     </section>
   );

@@ -2,9 +2,9 @@
 
 import Header from "./components/Header";
 import HeroSection from "../app/components/home/HeroSection";
-import WeatherSection from "./components/cuacaLaut/WeatherSection";
+import WeatherSection from "./components/home/WeatherSection";
 import ScheduleTable from "../app/components/home/ScheduleTable";
-import SeaWeatherMap from "../app/components/home/SeaWeatherMap";
+import SeaWeatherMap from "./components/cuacaLaut/SeaWeatherMap";
 import Footer from "../app/components/Footer";
 
 export default function Home() {

@@ -1,7 +1,8 @@
-// routes/weather.js
+// routes/weatherCardRoutes.js
 
-const express = require('express');
-const axios = require('axios');
+import express from "express";
+import axios from "axios";
+
 const router = express.Router();
 
 // Endpoint untuk Pelabuhan Balohan
@@ -13,7 +14,7 @@ router.get('/balohan', async (req, res) => {
       'https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4=11.72.02.2005'
     );
     
-    console.log('✅ Balohan data received:', response.data);
+    console.log('✅ Balohan data received');
     res.json(response.data);
     
   } catch (error) {
@@ -34,7 +35,7 @@ router.get('/ulee-lheue', async (req, res) => {
       'https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4=11.71.03.2002'
     );
     
-    console.log('✅ Ulee Lheue data received:', response.data);
+    console.log('✅ Ulee Lheue data received');
     res.json(response.data);
     
   } catch (error) {
@@ -46,4 +47,4 @@ router.get('/ulee-lheue', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

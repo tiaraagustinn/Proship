@@ -1,60 +1,38 @@
 // server.js
 import express from "express";
 import cors from "cors";
-import axios from "axios";
+import weatherCardRoutes from './src/routes/weatherCardRoutes.js';
+import weatherForestRoutes from './src/routes/weatherForestRoutes.js';
 
 const app = express();
+const PORT = process.env.PORT || 5000;
+
+// ✅ Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// ✅ Endpoint Balohan - Fetch dari BMKG
-app.get("/api/weather/balohan", async (req, res) => {
-  try {
-    console.log("📍 Fetching Balohan data from BMKG...");
-    
-    const response = await axios.get(
-      "https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4=11.72.02.2005"
-    );
-    
-    console.log("✅ Balohan data received");
-    res.json(response.data);
-    
-  } catch (error) {
-    console.error("❌ Error Balohan:", error.message);
-    res.status(500).json({ 
-      error: "Gagal mengambil data Balohan",
-      details: error.message 
-    });
-  }
-});
-
-// ✅ Endpoint Ulee Lheue - Fetch dari BMKG
-app.get("/api/weather/ulee-lheue", async (req, res) => {
-  try {
-    console.log("📍 Fetching Ulee Lheue data from BMKG...");
-    
-    const response = await axios.get(
-      "https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4=11.71.03.2002"
-    );
-    
-    console.log("✅ Ulee Lheue data received");
-    res.json(response.data);
-    
-  } catch (error) {
-    console.error("❌ Error Ulee Lheue:", error.message);
-    res.status(500).json({ 
-      error: "Gagal mengambil data Ulee Lheue",
-      details: error.message 
-    });
-  }
-});
-
-// Test endpoint
+// ✅ Test endpoint
 app.get("/", (req, res) => {
   res.json({ message: "Backend berjalan dengan baik" });
 });
 
-// Jalankan server
-app.listen(5000, () => {
-  console.log("✅ Server backend berjalan di http://localhost:5000");
+// ✅ Weather routes
+app.use('/api/weather', weatherCardRoutes);
+app.use('/api/maritim-weather', weatherForestRoutes);
+
+// ✅ 404 Handler
+app.use((req, res) => {
+  res.status(404).json({ error: 'Endpoint tidak ditemukan' });
+});
+
+// ✅ Error Handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Terjadi kesalahan pada server' });
+});
+
+// ✅ Jalankan server
+app.listen(PORT, () => {
+  console.log(`✅ Server backend berjalan di http://localhost:${PORT}`);
 });

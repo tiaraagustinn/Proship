@@ -1,5 +1,5 @@
 import Header from '@/app/components/Header';
-import SeaWeatherMap from '@/app/components/home/SeaWeatherMap';
+import SeaWeatherMap from '@/app/components/cuacaLaut/SeaWeatherMap';
 import WeatherForecastSection from '@/app/components/cuacaLaut/WeatherForecastSection';
 import Footer from '@/app/components/Footer';
 

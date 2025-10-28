@@ -26,7 +26,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         <Sidebar />
         
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col bg-#EEEEEE">
+        <div className="flex-1 flex flex-col bg-[#EEEEEE]">
           {/* Header - Full width of content area */}
           <Header title={title} />
           

@@ -1,11 +1,11 @@
 // app/page.tsx
 
-import Header from "./components/Header";
-import HeroSection from "../app/components/home/HeroSection";
-import WeatherSection from "./components/home/WeatherSection";
-import ScheduleTable from "../app/components/home/ScheduleTable";
-import SeaWeatherMap from "./components/cuacaLaut/SeaWeatherMap";
-import Footer from "../app/components/Footer";
+import Header from "./components/user/Header";
+import HeroSection from "../app/components/user/home/HeroSection";
+import WeatherSection from "./components/user/home/WeatherSection";
+import ScheduleTable from "../app/components/user/home/ScheduleTable";
+import SeaWeatherMap from "./components/user/cuacaLaut/SeaWeatherMap";
+import Footer from "./components/user/Footer";
 
 export default function Home() {
   return (

@@ -1,6 +1,6 @@
-import Header from '@/app/components/Header';
-import Footer from '@/app/components/Footer';
-import WeatherDetail from '@/app/components/detailCuaca/WeatherDetail';
+import Header from '@/app/components/user/Header';
+import Footer from '@/app/components/user/Footer';
+import WeatherDetail from '@/app/components/user/detailCuaca/WeatherDetail';
 
 export default function DetailCuacaPage() {
   return (

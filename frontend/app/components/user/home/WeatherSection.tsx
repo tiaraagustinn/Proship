@@ -3,7 +3,7 @@
 "use client";
 
 import React from 'react';
-import { WeatherCardAPI } from '@/app/components/home/WeatherCardAPI';
+import { WeatherCardAPI } from '@/app/components/user/home/WeatherCardAPI';
 
 interface WeatherSectionProps {
   pelabuhan: 'balohan' | 'ulee-lheue';

@@ -1,7 +1,7 @@
 "use client";
 
-import Header from '@/app/components/Header';
-import Footer from '@/app/components/Footer';
+import Header from '@/app/components/user/Header';
+import Footer from '@/app/components/user/Footer';
 import DatePicker from 'react-datepicker';
 import { PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import "react-datepicker/dist/react-datepicker.css";

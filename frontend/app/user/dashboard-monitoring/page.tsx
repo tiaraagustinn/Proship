@@ -60,19 +60,19 @@ export default function DashboardMonitoringPage() {
           <div className="grid grid-cols-4 gap-6 mb-6">
             <div className="bg-white p-4 rounded-lg shadow">
               <h3 className="text-sm font-medium mb-2">Jumlah Penumpang</h3>
-              <input type="text" className="w-full p-2 border rounded" />
+              <p className="text-sm font-bold mb-2">5,249</p>
             </div>
             <div className="bg-white p-4 rounded-lg shadow">
               <h3 className="text-sm font-medium mb-2">Jumlah Kendaraan Roda 2</h3>
-              <input type="text" className="w-full p-2 border rounded" />
+              <p className="text-sm font-bold mb-2">5249</p>
             </div>
             <div className="bg-white p-4 rounded-lg shadow">
               <h3 className="text-sm font-medium mb-2">Jumlah Kendaraan Roda 4</h3>
-              <input type="text" className="w-full p-2 border rounded" />
+              <p className="text-sm font-bold mb-2">123</p>
             </div>
             <div className="bg-white p-4 rounded-lg shadow">
               <h3 className="text-sm font-medium mb-2">Berat Muatan (Ton)</h3>
-              <input type="text" className="w-full p-2 border rounded" />
+              <p  className="text-sm font-bold mb-2">456</p>
             </div>
           </div>
 
@@ -93,18 +93,18 @@ export default function DashboardMonitoringPage() {
                 <tr>
                   <td className="px-6 py-4">Banda Aceh</td>
                   <td className="px-6 py-4">Sabang</td>
-                  <td className="px-6 py-4">-</td>
-                  <td className="px-6 py-4">-</td>
-                  <td className="px-6 py-4">-</td>
-                  <td className="px-6 py-4">-</td>
+                  <td className="px-6 py-4">345</td>
+                  <td className="px-6 py-4">4398</td>
+                  <td className="px-6 py-4">3843</td>
+                  <td className="px-6 py-4">837</td>
                 </tr>
                 <tr className="bg-gray-50">
                   <td className="px-6 py-4">Sabang</td>
                   <td className="px-6 py-4">Banda Aceh</td>
-                  <td className="px-6 py-4">-</td>
-                  <td className="px-6 py-4">-</td>
-                  <td className="px-6 py-4">-</td>
-                  <td className="px-6 py-4">-</td>
+                  <td className="px-6 py-4">347</td>
+                  <td className="px-6 py-4">234</td>
+                  <td className="px-6 py-4">4244</td>
+                  <td className="px-6 py-4">2442</td>
                 </tr>
               </tbody>
             </table>

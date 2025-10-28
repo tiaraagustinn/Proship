@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import weatherCardRoutes from './src/routes/weatherCardRoutes.js';
 import weatherForestRoutes from './src/routes/weatherForestRoutes.js';
+import weatherDetailRoutes from './src/routes/weatherDetailRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -20,6 +21,7 @@ app.get("/", (req, res) => {
 // ✅ Weather routes
 app.use('/api/weather', weatherCardRoutes);
 app.use('/api/maritim-weather', weatherForestRoutes);
+app.use('/api/detail', weatherDetailRoutes);
 
 // ✅ 404 Handler
 app.use((req, res) => {

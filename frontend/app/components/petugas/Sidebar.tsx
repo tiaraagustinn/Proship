@@ -13,8 +13,8 @@ export default function Sidebar() {
   const menuItems = [
     { name: 'Dashboard', path: '/petugas/dashboard', title: 'Dashboard' },
     { name: 'Input Historis Pelayaran', path: '/petugas/input-historis', title: 'Input Historis Pelayaran' },
-    { name: 'Jadwal', path: '/petugas/jadwal', title: 'Jadwal' },
-    { name: 'Historis Pelayaran', path: '/petugas/historis', title: 'Historis Pelayaran' },
+    { name: 'Input Jadwal', path: '/petugas/input-jadwal', title: 'Input Jadwal' },
+    { name: 'Historis Pelayaran', path: '/petugas/historis-pelayaran', title: 'Historis Pelayaran' },
     { name: 'Profil', path: '/petugas/profil', title: 'Profil' },
   ];
 

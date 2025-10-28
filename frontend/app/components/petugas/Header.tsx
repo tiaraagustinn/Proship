@@ -33,13 +33,13 @@ export default function Header({ title, userName = 'Tiara Agustin' }: HeaderProp
   };
 
   return (
-    <div className="bg-#EEEEEE pt-10 pb-2 px-8 ">
+    <div className="bg-#EEEEEE pt-10 pb-2 px-8 pr-20">
       <div className="flex justify-between items-center">
         {/* Page Title */}
         <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
 
         {/* User Profile */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1">
           {/* Avatar - Default placeholder atau dari data profil */}
           <div 
             className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center cursor-pointer overflow-hidden"
@@ -70,7 +70,7 @@ export default function Header({ title, userName = 'Tiara Agustin' }: HeaderProp
 
           {/* User Dropdown */}
           <select 
-            className="border rounded px-3 py-1.5 bg-white cursor-pointer text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className=" rounded px-1 py-1.5 cursor-pointer text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
             onChange={(e) => {
               if (e.target.value === 'profil') {
                 handleProfileClick();
@@ -78,7 +78,7 @@ export default function Header({ title, userName = 'Tiara Agustin' }: HeaderProp
             }}
             value="current"
           >
-            <option value="current">{currentUser}</option>
+            <option value="current" hidden>{currentUser}</option>
             <option value="profil">Lihat Profil</option>
           </select>
         </div>

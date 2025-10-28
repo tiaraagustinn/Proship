@@ -78,10 +78,10 @@ export default function InputHistorisPage() {
               name="idJadwal"
               value={formData.idJadwal}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${!formData.idJadwal ? "text-gray-400" : "text-gray-700"}`}
               required
             >
-              <option value="">Pilih id jadwal</option>
+              <option value="" disabled>Pilih id jadwal</option>
               <option value="1">Jadwal 1 - Banda Aceh - Sabang 08:00</option>
               <option value="2">Jadwal 2 - Sabang - Banda Aceh 08:00</option>
               <option value="3">Jadwal 3 - Banda Aceh - Sabang 11:00</option>

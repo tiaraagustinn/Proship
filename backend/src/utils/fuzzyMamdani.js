@@ -133,7 +133,7 @@ function evalMamdaniDebug(wave, wind, current, opts = {}) {
     input: { wave, wind, current },
     ruleDetails,
     xs, agg, score: Number(score.toFixed(6)),
-    category: score < 40 ? 'Bahaya' : score < 70 ? 'Waspada' : 'Aman'
+    category: score < 40 ? 'BAHAYA' : score < 70 ? 'WASPADA' : 'AMAN'
   };
 }
 

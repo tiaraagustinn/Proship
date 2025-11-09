@@ -30,10 +30,26 @@ export async function fetchAndPrepareInputs(url = "http://localhost:5000/api/dum
   const windAvg = (Number.isFinite(windMin) && Number.isFinite(windMax)) ? (windMin + windMax) / 2 : (windMin || windMax || 0);
   const currentAvg = (Number.isFinite(currentMin) && Number.isFinite(currentMax)) ? (currentMin + currentMax) / 2 : (currentMin || currentMax || 0);
 
+  // small nudge to avoid exact equality with MF breakpoints (prevents all-membership-zero on boundaries)
+  const EPS = 1e-3;
+  const windBreaks = [10,20,30];
+  const waveBreaks = [1.25,2.5,4.0];
+  const currentBreaks = [25,75];
+  function nudgeIfOnBreak(val, breaks) {
+    for (const b of breaks) {
+      if (Math.abs(val - b) < 1e-9) return val + EPS; // nudge slightly upward
+    }
+    return val;
+  }
+
+  const waveFinal = nudgeIfOnBreak(Number(waveAvg), waveBreaks);
+  const windFinal = nudgeIfOnBreak(Number(windAvg), windBreaks);
+  const currentFinal = nudgeIfOnBreak(Number(currentAvg), currentBreaks);
+
   return {
-    wave: Number(waveAvg),
-    wind: Number(windAvg),
-    current: Number(currentAvg),
+    wave: waveFinal,
+    wind: windFinal,
+    current: currentFinal,
     raw: entry,
   };
 }
@@ -60,10 +76,26 @@ export function fetchAndPrepareInputsFromFile(filePath = path.join(process.cwd()
   const windAvg = (Number.isFinite(windMin) && Number.isFinite(windMax)) ? (windMin + windMax) / 2 : (windMin || windMax || 0);
   const currentAvg = (Number.isFinite(currentMin) && Number.isFinite(currentMax)) ? (currentMin + currentMax) / 2 : (currentMin || currentMax || 0);
 
+  // small nudge to avoid exact equality with MF breakpoints (prevents all-membership-zero on boundaries)
+  const EPS = 1e-3;
+  const windBreaks = [10,20,30];
+  const waveBreaks = [1.25,2.5,4.0];
+  const currentBreaks = [25,75];
+  function nudgeIfOnBreak(val, breaks) {
+    for (const b of breaks) {
+      if (Math.abs(val - b) < 1e-9) return val + EPS; // nudge slightly upward
+    }
+    return val;
+  }
+
+  const waveFinal = nudgeIfOnBreak(Number(waveAvg), waveBreaks);
+  const windFinal = nudgeIfOnBreak(Number(windAvg), windBreaks);
+  const currentFinal = nudgeIfOnBreak(Number(currentAvg), currentBreaks);
+
   return {
-    wave: Number(waveAvg),
-    wind: Number(windAvg),
-    current: Number(currentAvg),
+    wave: waveFinal,
+    wind: windFinal,
+    current: currentFinal,
     raw: entry,
   };
 }

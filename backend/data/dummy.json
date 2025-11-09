@@ -16,12 +16,12 @@
       "wave_desc": "1.25 - 2.5 m",
       "wind_from": "Timur",
       "wind_to": "Timur Laut",
-      "wave_min": 1.25,
-      "wave_max": 2.5,
+      "wave_min": 3,
+      "wave_max": 1,
       "wind_speed_min": 5,
-      "wind_speed_max": 21,
-      "current_speed_min": 35,
-      "current_speed_max": 70
+      "wind_speed_max": 5,
+      "current_speed_min": 12,
+      "current_speed_max": 12
     },
     {
       "valid_from": "2025-11-06 00:00 UTC",

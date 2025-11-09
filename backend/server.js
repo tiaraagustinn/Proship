@@ -5,7 +5,7 @@ import weatherCardRoutes from './src/routes/weatherCardRoutes.js';
 import weatherForestRoutes from './src/routes/weatherForestRoutes.js';
 import weatherDetailRoutes from './src/routes/weatherDetailRoutes.js';
 import dummyRoutes from './src/routes/dummyRoutes.js';
-// import fuzzyRoutes from './src/routes/fuzzyRoutes.js';
+import fuzzyRoutes from './src/routes/fuzzyRoutes.js';
 
 
 const app = express();
@@ -26,7 +26,7 @@ app.use('/api/weather', weatherCardRoutes);
 app.use('/api/maritim-weather', weatherForestRoutes);
 app.use('/api/detail', weatherDetailRoutes);
 app.use('/api/dummy', dummyRoutes);
-// app.use('/api/fuzzy', fuzzyRoutes);
+app.use('/api/fuzzy', fuzzyRoutes);
 
 // ✅ 404 Handler
 app.use((req, res) => {

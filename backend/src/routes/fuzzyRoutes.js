@@ -1,7 +1,10 @@
+import express from "express";
 import axios from "axios";
 import fs from "fs";
 import path from "path";
 import { evalMamdaniDebug } from "../utils/fuzzyMamdani.js";
+
+const router = express.Router();
 
 /**
  * Fetch dummy data from the provided URL and extract numeric inputs.
@@ -100,8 +103,24 @@ export async function runFuzzyFromUrl(url) {
   }
 }
 
-// Allow running directly with `node src/services/fuzzyProcess.js` if desired.
+// HTTP endpoint: GET /api/fuzzy/evaluate
+// Optional query: ?source=file to use backend/data/dummy.json instead of fetching over HTTP
+router.get('/evaluate', async (req, res) => {
+  try {
+    const useFile = req.query.source === 'file';
+    const inputs = useFile ? fetchAndPrepareInputsFromFile() : await fetchAndPrepareInputs();
+    const result = evalMamdaniDebug(inputs.wave, inputs.wind, inputs.current, { step: 0.5 });
+    return res.json({ inputs: { wave: inputs.wave, wind: inputs.wind, current: inputs.current }, score: result.score, category: result.category, ruleDetails: result.ruleDetails });
+  } catch (err) {
+    console.error('Error /api/fuzzy/evaluate', err);
+    return res.status(500).json({ error: String(err.message || err) });
+  }
+});
+
+// Allow running directly for debugging
 if (process.argv[1] && process.argv[1].endsWith('fuzzyRoutes.js')) {
   const url = process.argv[2] || undefined;
   runFuzzyFromUrl(url).catch(()=>process.exit(1));
 }
+
+export default router;

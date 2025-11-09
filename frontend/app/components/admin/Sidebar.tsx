@@ -20,7 +20,7 @@ export default function AdminSidebar() {
   const handleLogout = () => {
     localStorage.removeItem('token');
     sessionStorage.clear();
-    router.push('/admin/login');
+    router.push('/login');
   };
 
   const handleMenuClick = (item: typeof menuItems[0]) => {
@@ -32,20 +32,13 @@ export default function AdminSidebar() {
     <aside className="w-64 bg-[#838383] shadow-lg p-6 flex flex-col min-h-screen">
       {/* Logo */}
       <div className="mb-8">
-        <div className="flex items-center gap-3 text-white">
-          <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center p-2">
-            <svg className="w-full h-full" viewBox="0 0 100 100" fill="none">
-              <circle cx="50" cy="50" r="45" stroke="black" strokeWidth="3"/>
-              <path d="M50 10 L50 90 M20 50 L80 50" stroke="black" strokeWidth="2"/>
-              <circle cx="50" cy="50" r="15" fill="black"/>
-              <path d="M30 30 Q50 45 70 30" stroke="black" strokeWidth="2" fill="none"/>
-            </svg>
-          </div>
-          <div>
-            <div className="font-bold text-xl">DISHUB</div>
-            <div className="font-bold text-xl">ACEH</div>
-          </div>
-        </div>
+        <Image
+          src="/images/dishub-aceh-white.png"
+          alt="Dishub Aceh Logo"
+          width={150}
+          height={60}
+          priority
+        />
       </div>
 
       {/* Navigation Menu */}

@@ -21,7 +21,7 @@ export default function Sidebar() {
   const handleLogout = () => {
     localStorage.removeItem('token');
     sessionStorage.clear();
-    router.push('/petugas/login');
+    router.push('/login');
   };
 
   const handleMenuClick = (item: typeof menuItems[0]) => {

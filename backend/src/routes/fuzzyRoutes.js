@@ -1,73 +1,158 @@
 import express from "express";
 import axios from "axios";
+import fs from "fs";
+import path from "path";
+import { evalMamdaniDebug } from "../utils/fuzzyMamdani.js";
 
 const router = express.Router();
 
-// Fungsi bantu untuk fuzzy logic Mamdani sederhana
-function fuzzySafety(wave, wind, current) {
-  // --- 1. Fuzzifikasi ---
-  const waveLow = wave <= 1 ? 1 : wave <= 2 ? (2 - wave) / 1 : 0;
-  const waveMed = wave >= 1 && wave <= 3 ? 1 - Math.abs(wave - 2) / 1 : 0;
-  const waveHigh = wave >= 2 ? (wave - 2) / 2 : 0;
+/**
+ * Fetch dummy data from the provided URL and extract numeric inputs.
+ * Uses averages of min/max where both are provided.
+ * Returns an object { wave, wind, current, raw }
+ */
+export async function fetchAndPrepareInputs(url = "http://localhost:5000/api/dummy/perairan/dummy.json") {
+  const resp = await axios.get(url);
+  const data = resp.data;
+  // The API appears to provide an object with a `data` array. Use the first entry.
+  const entry = Array.isArray(data.data) && data.data.length ? data.data[0] : null;
+  if (!entry) throw new Error("no data entry found in API response");
 
-  const windLow = wind <= 5 ? 1 : wind <= 10 ? (10 - wind) / 5 : 0;
-  const windMed = wind >= 5 && wind <= 15 ? 1 - Math.abs(wind - 10) / 5 : 0;
-  const windHigh = wind >= 10 ? (wind - 10) / 10 : 0;
+  const waveMin = Number(entry.wave_min ?? (entry.wave ?? 0));
+  const waveMax = Number(entry.wave_max ?? (entry.wave ?? 0));
+  const windMin = Number(entry.wind_speed_min ?? 0);
+  const windMax = Number(entry.wind_speed_max ?? 0);
+  const currentMin = Number(entry.current_speed_min ?? 0);
+  const currentMax = Number(entry.current_speed_max ?? 0);
 
-  const currentLow = current <= 30 ? 1 : current <= 50 ? (50 - current) / 20 : 0;
-  const currentMed = current >= 30 && current <= 70 ? 1 - Math.abs(current - 50) / 20 : 0;
-  const currentHigh = current >= 50 ? (current - 50) / 30 : 0;
+  // Use averages where possible
+  const waveAvg = (Number.isFinite(waveMin) && Number.isFinite(waveMax)) ? (waveMin + waveMax) / 2 : (waveMin || waveMax || 0);
+  const windAvg = (Number.isFinite(windMin) && Number.isFinite(windMax)) ? (windMin + windMax) / 2 : (windMin || windMax || 0);
+  const currentAvg = (Number.isFinite(currentMin) && Number.isFinite(currentMax)) ? (currentMin + currentMax) / 2 : (currentMin || currentMax || 0);
 
-  // --- 2. Aturan Fuzzy (Mamdani) ---
-  const aman = Math.min(waveLow, windLow, currentLow);
-  const waspada = Math.max(
-    Math.min(waveMed, windMed),
-    Math.min(waveMed, currentMed),
-    Math.min(windMed, currentMed)
-  );
-  const bahaya = Math.max(waveHigh, windHigh, currentHigh);
+  // small nudge to avoid exact equality with MF breakpoints (prevents all-membership-zero on boundaries)
+  const EPS = 1e-3;
+  const windBreaks = [10,20,30];
+  const waveBreaks = [1.25,2.5,4.0];
+  const currentBreaks = [25,75];
+  function nudgeIfOnBreak(val, breaks) {
+    for (const b of breaks) {
+      if (Math.abs(val - b) < 1e-9) return val + EPS; // nudge slightly upward
+    }
+    return val;
+  }
 
-  // --- 3. Defuzzifikasi (skor kasar) ---
-  const score =
-    (aman * 100 + waspada * 50 + bahaya * 10) / (aman + waspada + bahaya + 0.0001);
+  const waveFinal = nudgeIfOnBreak(Number(waveAvg), waveBreaks);
+  const windFinal = nudgeIfOnBreak(Number(windAvg), windBreaks);
+  const currentFinal = nudgeIfOnBreak(Number(currentAvg), currentBreaks);
 
-  let kategori = "Aman";
-  if (score < 40) kategori = "Bahaya";
-  else if (score < 70) kategori = "Waspada";
-
-  return { score: score.toFixed(2), kategori };
+  return {
+    wave: waveFinal,
+    wind: windFinal,
+    current: currentFinal,
+    raw: entry,
+  };
 }
 
-// --- Endpoint utama ---
-router.get("/predict", async (req, res) => {
+/**
+ * Read the local dummy.json file (path expected relative to backend root) and
+ * prepare inputs the same way as fetchAndPrepareInputs.
+ */
+export function fetchAndPrepareInputsFromFile(filePath = path.join(process.cwd(), 'data', 'dummy.json')) {
+  if (!fs.existsSync(filePath)) throw new Error(`file not found: ${filePath}`);
+  const raw = fs.readFileSync(filePath, 'utf8');
+  const data = JSON.parse(raw);
+  const entry = Array.isArray(data.data) && data.data.length ? data.data[0] : null;
+  if (!entry) throw new Error("no data entry found in file");
+
+  const waveMin = Number(entry.wave_min ?? (entry.wave ?? 0));
+  const waveMax = Number(entry.wave_max ?? (entry.wave ?? 0));
+  const windMin = Number(entry.wind_speed_min ?? 0);
+  const windMax = Number(entry.wind_speed_max ?? 0);
+  const currentMin = Number(entry.current_speed_min ?? 0);
+  const currentMax = Number(entry.current_speed_max ?? 0);
+
+  const waveAvg = (Number.isFinite(waveMin) && Number.isFinite(waveMax)) ? (waveMin + waveMax) / 2 : (waveMin || waveMax || 0);
+  const windAvg = (Number.isFinite(windMin) && Number.isFinite(windMax)) ? (windMin + windMax) / 2 : (windMin || windMax || 0);
+  const currentAvg = (Number.isFinite(currentMin) && Number.isFinite(currentMax)) ? (currentMin + currentMax) / 2 : (currentMin || currentMax || 0);
+
+  // small nudge to avoid exact equality with MF breakpoints (prevents all-membership-zero on boundaries)
+  const EPS = 1e-3;
+  const windBreaks = [10,20,30];
+  const waveBreaks = [1.25,2.5,4.0];
+  const currentBreaks = [25,75];
+  function nudgeIfOnBreak(val, breaks) {
+    for (const b of breaks) {
+      if (Math.abs(val - b) < 1e-9) return val + EPS; // nudge slightly upward
+    }
+    return val;
+  }
+
+  const waveFinal = nudgeIfOnBreak(Number(waveAvg), waveBreaks);
+  const windFinal = nudgeIfOnBreak(Number(windAvg), windBreaks);
+  const currentFinal = nudgeIfOnBreak(Number(currentAvg), currentBreaks);
+
+  return {
+    wave: waveFinal,
+    wind: windFinal,
+    current: currentFinal,
+    raw: entry,
+  };
+}
+
+/**
+ * Run the fuzzy Mamdani evaluation and print results to console.
+ */
+export async function runFuzzyFromUrl(url) {
   try {
-    const response = await axios.get("http://localhost:5000/api/dummy/perairan/dummy.json");
-
-    const data = response.data.data.map((item) => {
-      const wave = (item.wave_desc.includes("-"))
-        ? (parseFloat(item.wave_desc.split("-")[0]) + parseFloat(item.wave_desc.split("-")[1])) / 2
-        : parseFloat(item.wave_desc);
-
-      const wind = (item.wind_speed_min + item.wind_speed_max) / 2;
-      const current = (item.current_speed_min + item.current_speed_max) / 2;
-
-      const hasil = fuzzySafety(wave, wind, current);
-
-      return {
-        waktu: item.time_desc,
-        tinggi_gelombang: wave,
-        kecepatan_angin: wind,
-        kecepatan_arus: current,
-        tingkat_keselamatan: hasil.kategori,
-        skor: hasil.score,
-      };
+    const inputs = await fetchAndPrepareInputs(url);
+    console.log("Inputs used for fuzzy processing:", {
+      wave: inputs.wave,
+      wind: inputs.wind,
+      current: inputs.current,
     });
 
-    res.json({ lokasi: response.data.name, hasil: data });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Gagal menghitung fuzzy" });
+    // call the existing eval function from utils. It returns score, category, and details.
+    const result = evalMamdaniDebug(inputs.wave, inputs.wind, inputs.current, { step: 0.5 });
+
+    console.log("Fuzzy result summary:");
+    console.log("  score:", result.score);
+    console.log("  category:", result.category);
+    console.log("  rule count:", result.ruleDetails?.length ?? 0);
+
+    // For debugging, print the first few rule details
+    if (result.ruleDetails && result.ruleDetails.length) {
+      console.log("  sample rules (first 6):");
+      result.ruleDetails.slice(0,6).forEach(r => {
+        console.log(`    rule ${r.idx}: antecedent=${r.antecedent.join(',')} degrees=${r.degrees.map(d=>d.toFixed(3)).join(',')} strength=${r.ruleStrength}`);
+      });
+    }
+
+    return result;
+  } catch (err) {
+    console.error("Fuzzy processing failed:", err.message || err);
+    throw err;
+  }
+}
+
+// HTTP endpoint: GET /api/fuzzy/evaluate
+// Optional query: ?source=file to use backend/data/dummy.json instead of fetching over HTTP
+router.get('/evaluate', async (req, res) => {
+  try {
+    const useFile = req.query.source === 'file';
+    const inputs = useFile ? fetchAndPrepareInputsFromFile() : await fetchAndPrepareInputs();
+    const result = evalMamdaniDebug(inputs.wave, inputs.wind, inputs.current, { step: 0.5 });
+    return res.json({ inputs: { wave: inputs.wave, wind: inputs.wind, current: inputs.current }, score: result.score, category: result.category, ruleDetails: result.ruleDetails });
+  } catch (err) {
+    console.error('Error /api/fuzzy/evaluate', err);
+    return res.status(500).json({ error: String(err.message || err) });
   }
 });
+
+// Allow running directly for debugging
+if (process.argv[1] && process.argv[1].endsWith('fuzzyRoutes.js')) {
+  const url = process.argv[2] || undefined;
+  runFuzzyFromUrl(url).catch(()=>process.exit(1));
+}
 
 export default router;

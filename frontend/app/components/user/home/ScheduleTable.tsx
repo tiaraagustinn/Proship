@@ -15,9 +15,9 @@ const ScheduleTable = () => {
   const [selectedDate, setSelectedDate] = useState(0);
 
   const dates = [
-    'Rabu 10 September 2025',
-    'Kamis 11 September 2025', 
-    'Jumat 12 September 2025'
+    { day: 'Rabu', date: '10 September 2025' },
+    { day: 'Kamis', date: '11 September 2025' },
+    { day: 'Jumat', date: '12 September 2025' }
   ];
 
   const scheduleData: ScheduleData[] = [
@@ -82,77 +82,81 @@ const ScheduleTable = () => {
   const getSafetyLevelStyle = (level: string) => {
     switch (level) {
       case 'Aman':
-        return 'bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm font-medium cursor-pointer transition-colors duration-200 shadow-sm hover:shadow-md';
+        return 'inline-flex min-w-28 items-center justify-center rounded-xl border-2 border-green-700 bg-green-500 px-4 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-green-600';
       case 'Waspada':
-        return 'bg-orange-400 hover:bg-orange-500 text-white px-3 py-1 rounded text-sm font-medium cursor-pointer transition-colors duration-200 shadow-sm hover:shadow-md';
+        return 'inline-flex min-w-28 items-center justify-center rounded-xl border-2 border-yellow-700 bg-yellow-500 px-4 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-yellow-600';
       case 'Bahaya':
-        return 'bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm font-medium cursor-pointer transition-colors duration-200 shadow-sm hover:shadow-md';
+        return 'inline-flex min-w-28 items-center justify-center rounded-xl border-2 border-orange-800 bg-orange-600 px-4 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-orange-700';
       default:
-        return 'bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm font-medium cursor-pointer transition-colors duration-200 shadow-sm hover:shadow-md';
+        return 'inline-flex min-w-28 items-center justify-center rounded-xl border-2 border-gray-700 bg-gray-500 px-4 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-gray-600';
     }
   };
 
   return (
-    <section className="py-12 bg-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-lg shadow-lg border-2 border-teal-500 overflow-hidden">
+    <section id="jadwal" className="bg-white py-12">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="space-y-6 rounded-2xl bg-blue-100 p-10">
           {/* Date Tabs */}
-          <div className="bg-gray-50 border-b border-gray-200">
-            <div className="flex">
+          <div className="mx-auto w-full max-w-4xl overflow-hidden rounded-xl border border-blue-900 bg-white">
+            <div className="grid grid-cols-3">
               {dates.map((date, index) => (
                 <button
                   key={index}
                   onClick={() => setSelectedDate(index)}
-                  className={`px-6 py-4 font-medium text-sm transition-colors ${
+                  className={`flex flex-col items-center justify-center gap-1 border-r border-blue-900 px-4 py-3 text-center font-semibold transition-all last:border-r-0 ${
                     selectedDate === index
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                      ? 'bg-[#4f548c] text-white shadow-sm'
+                      : 'bg-white text-blue-800 hover:bg-[#f1f3ff] hover:text-[#13376c]'
                   }`}
                 >
-                  {date}
+                  <span className="text-xl leading-none">{date.day}</span>
+                  <span className="text-xs leading-none">{date.date}</span>
                 </button>
               ))}
             </div>
           </div>
 
           {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-blue-50">
+          <div className="overflow-x-auto rounded-2xl border border-teal-500/40 bg-white shadow-lg">
+            <table className="min-w-[860px] w-full table-fixed border-collapse">
+              <thead className="bg-gray-600">
                 <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-blue-800">
+                  <th className="w-1/5 whitespace-nowrap border border-blue-200 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-white">
                     Keberangkatan
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-blue-800">
+                  <th className="w-1/5 whitespace-nowrap border border-blue-200 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-white">
                     Kedatangan
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-blue-800">
+                  <th className="w-1/5 whitespace-nowrap border border-blue-200 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-white">
                     Jam
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-blue-800">
+                  <th className="w-1/5 whitespace-nowrap border border-blue-200 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-white">
                     Armada
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-blue-800">
+                  <th className="w-1/5 border border-blue-200 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-white">
                     Tingkat Keselamatan
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 bg-gray-100">
+              <tbody>
                 {scheduleData.map((schedule, index) => (
-                  <tr key={index} className="bg-white">
-                    <td className="px-6 py-4 text-sm text-gray-900">
+                  <tr
+                    key={index}
+                    className={`${index % 2 === 0 ? 'bg-white' : 'bg-blue-50/70'} hover:bg-blue-50`}
+                  >
+                    <td className="whitespace-nowrap border border-blue-100 px-4 py-2.5 text-center text-sm font-medium text-gray-900">
                       {schedule.departure}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
+                    <td className="whitespace-nowrap border border-blue-100 px-4 py-2.5 text-center text-sm font-medium text-gray-900">
                       {schedule.arrival}
                     </td>
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                    <td className="whitespace-nowrap border border-blue-100 px-4 py-2.5 text-center text-sm font-semibold text-gray-900">
                       {schedule.time}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
+                    <td className="whitespace-nowrap border border-blue-100 px-4 py-2.5 text-center text-sm text-gray-900">
                       {schedule.fleet}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="border border-blue-100 px-4 py-2.5 text-center">
                       <Link href="/user/tingkat-keselamatan" className={getSafetyLevelStyle(schedule.safetyLevel)}>
                         {schedule.safetyLevel}
                       </Link>

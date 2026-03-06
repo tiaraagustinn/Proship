@@ -13,7 +13,7 @@ export default function Home() {
       <Header />
       <HeroSection />
       
-      <div className="container bg-white mx-auto px-40 py-15">
+      <div className="bg-gray-100 mx-auto px-40 py-15">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-7 items-center">
           <WeatherSection
             pelabuhan="balohan"

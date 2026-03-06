@@ -4,7 +4,7 @@ import React from 'react';
 
 const HeroSection = () => {
   return (
-    <section className="relative bg-cover bg-center min-h-[500px] flex items-center" style={{ backgroundImage: "url('/images/dash-bg.png')" }}>
+    <section className="relative bg-cover bg-center min-h-[500px] flex items-center overflow-hidden" style={{ backgroundImage: "url('/images/dash-bg.png')" }}>
       {/* Lapisan transparan di atas gambar */}
       <div className="absolute inset-0" style={{ backgroundColor: '#CDD7E0', opacity: 0.5 }}></div>
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-5 py-12">

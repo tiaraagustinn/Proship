@@ -1,12 +1,13 @@
 // ...existing code...
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const Header = () => {
   const pathname = usePathname() || '/';
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
@@ -14,12 +15,14 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
+    <header className="sticky top-0 z-50 bg-white shadow-lg border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-5">
         <div className="flex justify-between items-center h-17">
           {/* Logo */}
           <div className="flex items-center">
+            <Link href="/">
             <img src="/images/dishub-logo.png" alt="DISHUB" className="w-28 h-12" />
+            </Link>
           </div>
 
           {/* Navigation */}
@@ -56,13 +59,67 @@ const Header = () => {
 
           {/* Mobile menu button */}
           <div className="md:hidden">
-            <button className="text-gray-700 hover:text-blue-600">
+            <button
+              onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+              aria-label="Toggle navigation menu"
+              aria-expanded={isMobileMenuOpen}
+              className="text-gray-700 hover:text-blue-600"
+            >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
           </div>
         </div>
+
+        {isMobileMenuOpen && (
+          <nav className="md:hidden pb-4 space-y-2">
+            <Link
+              href="/"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`block rounded px-3 py-2 ${
+                isActive('/') ? 'bg-blue-50 text-blue-600 font-bold' : 'text-gray-700 hover:bg-gray-50 hover:text-blue-400 font-semibold'
+              }`}
+              aria-current={isActive('/') ? 'page' : undefined}
+            >
+              HOME
+            </Link>
+            <Link
+              href="/user/cuaca-laut"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`block rounded px-3 py-2 ${
+                isActive('/user/cuaca-laut')
+                  ? 'bg-blue-50 text-blue-600 font-bold'
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-blue-400 font-semibold'
+              }`}
+              aria-current={isActive('/user/cuaca-laut') ? 'page' : undefined}
+            >
+              CUACA LAUT
+            </Link>
+            <Link
+              href="/user/ais"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`block rounded px-3 py-2 ${
+                isActive('/user/ais') ? 'bg-blue-50 text-blue-600 font-bold' : 'text-gray-700 hover:bg-gray-50 hover:text-blue-400 font-semibold'
+              }`}
+              aria-current={isActive('/user/ais') ? 'page' : undefined}
+            >
+              AIS TRACKER
+            </Link>
+            <Link
+              href="/user/dashboard-monitoring"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`block rounded px-3 py-2 ${
+                isActive('/user/dashboard-monitoring')
+                  ? 'bg-blue-50 text-blue-600 font-bold'
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-blue-400 font-semibold'
+              }`}
+              aria-current={isActive('/user/dashboard-monitoring') ? 'page' : undefined}
+            >
+              DASHBOARD MONITORING
+            </Link>
+          </nav>
+        )}
       </div>
     </header>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 
 interface ForecastCard {
@@ -16,15 +16,106 @@ interface ForecastCard {
   windTo: string;
   windSpeedMin: number;
   windSpeedMax: number;
+  currentSpeedMin: number;
+  currentSpeedMax: number;
+  waveMin: number;
+  waveMax: number;
   weatherIcon: string;
-  windStrength: string;
 }
+
+interface LocationInfo {
+  name: string;
+  issued: string;
+  code?: string;
+  info?: string;
+}
+
+const daysLong = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+const monthsLong = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+
+const parseUtcToWib = (utcDateTime: string): Date | null => {
+  if (!utcDateTime) return null;
+
+  try {
+    const [datePart, timePart] = utcDateTime.split(' ');
+    const [year, month, day] = datePart.split('-').map(Number);
+    const [hour, minute] = (timePart || '00:00').split(':').map(Number);
+
+    const utcDate = new Date(Date.UTC(year, month - 1, day, hour, minute));
+    return new Date(utcDate.getTime() + 7 * 60 * 60 * 1000);
+  } catch {
+    return null;
+  }
+};
+
+const toDateKey = (utcDateTime: string): string => {
+  const date = parseUtcToWib(utcDateTime);
+  if (!date) return '';
+
+  const y = date.getUTCFullYear();
+  const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(date.getUTCDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
+
+const formatDateTime = (utcDateTime: string): string => {
+  const date = parseUtcToWib(utcDateTime);
+  if (!date) return utcDateTime;
+
+  const dayName = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'][date.getUTCDay()];
+  const dayNum = date.getUTCDate();
+  const monthName = monthsShort[date.getUTCMonth()];
+  const hours = String(date.getUTCHours()).padStart(2, '0');
+  const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+
+  return `${dayName}, ${dayNum} ${monthName} ${date.getUTCFullYear()}, ${hours}.${minutes}`;
+};
+
+const formatIssuedDate = (utcDateTime: string): string => {
+  const date = parseUtcToWib(utcDateTime);
+  if (!date) return utcDateTime;
+
+  const dayName = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'][date.getUTCDay()];
+  const dayNum = date.getUTCDate();
+  const monthName = monthsLong[date.getUTCMonth()];
+  const year = date.getUTCFullYear();
+  const hours = String(date.getUTCHours()).padStart(2, '0');
+  const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+
+  return `${dayName}, ${dayNum} ${monthName} ${year} pukul ${hours}.${minutes} WIB`;
+};
+
+const formatTableTime = (utcDateTime: string): string => {
+  const date = parseUtcToWib(utcDateTime);
+  if (!date) return utcDateTime;
+
+  const dayNum = date.getUTCDate();
+  const monthName = monthsShort[date.getUTCMonth()];
+  const year = String(date.getUTCFullYear()).slice(-2);
+  const hours = String(date.getUTCHours()).padStart(2, '0');
+  const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+
+  return `${dayNum} ${monthName} ${year}, ${hours}.${minutes}`;
+};
+
+const getWaveBadgeClass = (waveCat: string): string => {
+  const cat = (waveCat || '').toLowerCase();
+  if (cat.includes('tinggi') || cat.includes('bahaya')) return 'bg-red-100 text-red-700 border border-red-200';
+  if (cat.includes('sedang')) return 'bg-amber-100 text-amber-700 border border-amber-200';
+  return 'bg-emerald-100 text-emerald-700 border border-emerald-200';
+};
+
+const getHourLabel = (index: number): string => {
+  if (index === 0) return '0 jam lagi';
+  return `${index} jam lagi`;
+};
 
 const WeatherForecastSection = () => {
   const [forecastData, setForecastData] = useState<ForecastCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [locationInfo, setLocationInfo] = useState<any>(null);
+  const [locationInfo, setLocationInfo] = useState<LocationInfo | null>(null);
 
   useEffect(() => {
     fetchWeatherData();
@@ -72,8 +163,11 @@ const WeatherForecastSection = () => {
           windTo: item.wind_to || '',
           windSpeedMin: item.wind_speed_min || 0,
           windSpeedMax: item.wind_speed_max || 0,
+          currentSpeedMin: item.current_speed_min || 0,
+          currentSpeedMax: item.current_speed_max || 0,
+          waveMin: item.wave_min || 0,
+          waveMax: item.wave_max || 0,
           weatherIcon: getWeatherIcon(item.weather || ''),
-          windStrength: getWindStrength(item.wind_speed_max || 0)
         }));
         
         setForecastData(forecasts);
@@ -81,7 +175,9 @@ const WeatherForecastSection = () => {
       
       setLocationInfo({
         name: data.name || 'Perairan Sabang - Banda Aceh',
-        issued: data.issued || ''
+        issued: data.issued || '',
+        code: data.code,
+        info: data.info
       });
       
     } catch (err) {
@@ -104,78 +200,7 @@ const WeatherForecastSection = () => {
     return '🌤️';
   };
 
-  const getWindStrength = (maxSpeed: number): string => {
-    if (maxSpeed < 10) return 'Lemah';
-    if (maxSpeed < 20) return 'Sedang';
-    if (maxSpeed < 30) return 'Kuat';
-    return 'Sangat Kuat';
-  };
-
-  const formatDateTime = (utcDateTime: string): string => {
-    if (!utcDateTime) return '';
-    try {
-      // Format: "2025-10-20 12:00 UTC"
-      const [datePart, timePart] = utcDateTime.split(' ');
-      const [year, month, day] = datePart.split('-');
-      const [hour, minute] = timePart.split(':');
-      
-      const date = new Date(Date.UTC(
-        parseInt(year),
-        parseInt(month) - 1,
-        parseInt(day),
-        parseInt(hour),
-        parseInt(minute)
-      ));
-      
-      // Convert to WIB (UTC+7)
-      const wibDate = new Date(date.getTime() + 7 * 60 * 60 * 1000);
-      
-      const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-      
-      const dayName = days[wibDate.getUTCDay()];
-      const dayNum = wibDate.getUTCDate();
-      const monthName = months[wibDate.getUTCMonth()];
-      const hours = String(wibDate.getUTCHours()).padStart(2, '0');
-      const minutes = String(wibDate.getUTCMinutes()).padStart(2, '0');
-      
-      return `${dayName}, ${dayNum} ${monthName}, ${hours}.${minutes}`;
-    } catch (err) {
-      console.error('Error formatting date:', err);
-      return utcDateTime;
-    }
-  };
-
-  const formatIssuedDate = (utcDateTime: string): string => {
-    if (!utcDateTime) return '';
-    try {
-      const [datePart, timePart] = utcDateTime.split(' ');
-      const [year, month, day] = datePart.split('-');
-      const [hour, minute] = timePart.split(':');
-      
-      const date = new Date(Date.UTC(
-        parseInt(year),
-        parseInt(month) - 1,
-        parseInt(day),
-        parseInt(hour),
-        parseInt(minute)
-      ));
-      
-      const wibDate = new Date(date.getTime() + 7 * 60 * 60 * 1000);
-      
-      return wibDate.toLocaleString('id-ID', {
-        weekday: 'short',
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZone: 'UTC'
-      }) + ' WIB';
-    } catch (err) {
-      return utcDateTime;
-    }
-  };
+  const highlightedForecast = forecastData[0];
 
   if (loading) {
     return (
@@ -216,122 +241,100 @@ const WeatherForecastSection = () => {
   return (
     <section className="py-8 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Prakiraan Cuaca Maritim</h2>
-        </div>
-
-        {/* Location Info */}
-        {locationInfo && (
-          <div className="mb-4">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-semibold text-gray-800">
-                {locationInfo.name}
-                {locationInfo.code && <span className="text-sm text-gray-500 ml-2">({locationInfo.code})</span>}
-              </h3>
-              <Link href="/user/detail-cuaca" className="text-blue-600 hover:text-blue-800 font-medium">
-            Lebih detail &gt;
-          </Link>
-            </div>
-            
-            {locationInfo.issued && (
-              <p className="text-sm text-gray-600">
-                 {formatIssuedDate(locationInfo.issued)}
-              </p>
-            )}
-            {locationInfo.info && (
-              <p className="text-xs text-blue-600 mt-1">ℹ️ {locationInfo.info}</p>
-            )}
-          </div>
-        )}
-
-        {/* Horizontal Scrollable Cards */}
-        {forecastData.length > 0 ? (
+        {forecastData.length > 0 && locationInfo && highlightedForecast ? (
           <>
-            <div className="overflow-x-auto pb-4 -mx-4 px-4">
-              <div className="flex space-x-4 min-w-max">
-                {forecastData.map((forecast, index) => (
-                  <div 
-                    key={index} 
-                    className="bg-gradient-to-b from-yellow-50 to-white rounded-lg border-t-4 border-yellow-400 shadow-md hover:shadow-lg transition-shadow w-72 flex-shrink-0"
-                  >
-                    {/* Header dengan waktu */}
-                    <div className="bg-white px-4 py-3 border-b border-gray-200">
-                      <p className="font-semibold text-gray-900 text-sm">
-                        {formatDateTime(forecast.validFrom)}
-                      </p>
-                      <p className="text-xs text-blue-600 font-medium mt-1">
-                        {forecast.timeDesc}
-                      </p>
-                    </div>
+            <div className="mb-5 flex items-center justify-between gap-3">
+              <h3 className="text-xl font-bold text-slate-700">{locationInfo.name}</h3>
+              <Link
+                href="/user/detail-cuaca"
+                className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-5 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100"
+              >
+                Lebih detail
+                <span aria-hidden="true">›</span>
+              </Link>
+            </div>
 
-                    {/* Weather Icon & Condition */}
-                    <div className="px-4 py-4 text-center border-b border-gray-200">
-                      <div className="text-5xl mb-2">{forecast.weatherIcon}</div>
-                      <p className="font-semibold text-gray-800 text-sm">{forecast.weather}</p>
-                    </div>
-
-                    {/* Wind & Wave Info */}
-                    <div className="px-4 py-3 space-y-2">
-                      {/* Labels */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <span className="mr-2">💨</span>
-                          <span className="text-sm text-gray-600">Angin</span>
+            <div className="overflow-x-auto pb-4">
+              <div className="flex min-w-max gap-4">
+                <aside
+                  className="relative w-[320px] flex-shrink-0 overflow-hidden rounded-3xl border border-slate-700 shadow-lg"
+                  style={{
+                    backgroundImage: "linear-gradient(to bottom, rgba(51,65,85,0.82), rgba(15,23,42,0.96)), url('/images/balohan-bg3.png')",
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center'
+                  }}
+                >
+                  <div className="flex min-h-[540px] flex-col justify-between p-6 text-white">
+                    <div>
+                      <div className="mb-8 flex items-start gap-3">
+                        <div className="rounded-2xl bg-white/10 p-4 ring-1 ring-white/20">
+                          <span className="text-2xl">🌊</span>
                         </div>
-                        <div className="flex items-center">
-                          <span className="mr-2">〰️</span>
-                          <span className="text-sm text-gray-600">Gelombang</span>
+                        <div>
+                          <h4 className="text-3xl font-bold leading-tight">{locationInfo.name}</h4>
+                          <p className="mt-2 text-base text-slate-100">Prakiraan Cuaca Perairan</p>
                         </div>
                       </div>
 
-                      {/* Direction & Height */}
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 pr-2">
-                          <p className="text-sm font-medium text-gray-800">
-                            {forecast.windFrom}
-                            {forecast.windTo && forecast.windTo !== forecast.windFrom && (
-                              <span className="text-gray-600"> - {forecast.windTo}</span>
-                            )}
+                      <div className="rounded-2xl border border-white/20 bg-white/10 p-5 backdrop-blur-sm">
+                        <p className="text-lg font-semibold text-white">Periode Prakiraan</p>
+                        <div className="mt-4 space-y-3 text-sm text-slate-100">
+                          <p>
+                            <span className="block text-xs text-slate-300">Mulai</span>
+                            <span className="font-semibold">{forecastData[0]?.timeDesc || '-'}</span>
+                          </p>
+                          <p>
+                            <span className="block text-xs text-slate-300">Sampai</span>
+                            <span className="font-semibold">{forecastData[forecastData.length - 1]?.timeDesc || '-'}</span>
+                          </p>
+                          <p>
+                            <span className="block text-xs text-slate-300">Dikeluarkan</span>
+                            <span className="font-semibold">{locationInfo.issued}</span>
                           </p>
                         </div>
-                        <div className="flex-1 text-right pl-2">
-                          <p className="text-sm font-medium text-gray-800">{forecast.waveDesc}</p>
-                        </div>
-                      </div>
-
-                      {/* Strength Badge & Wave Category */}
-                      <div className="flex items-center justify-between">
-                        <span className="inline-block bg-yellow-200 text-yellow-800 text-xs font-semibold px-3 py-1 rounded">
-                          {forecast.windStrength}
-                        </span>
-                        {forecast.waveCat && (
-                          <span className="text-xs text-gray-600">
-                            Gelombang: {forecast.waveCat}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Speed details */}
-                      <div className="text-xs text-gray-600">
-                        <p>💨 {forecast.windSpeedMin} - {forecast.windSpeedMax} knot</p>
                       </div>
                     </div>
 
-                    {/* Weather Description */}
-                    <div className="px-4 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
-                      <p className="text-xs text-gray-700 leading-relaxed">
-                        {forecast.weatherDesc}
-                      </p>
-                      {forecast.warningDesc && forecast.warningDesc !== 'NIL' && (
-                        <div className="mt-2 bg-red-50 border border-red-200 rounded px-2 py-1">
-                          <p className="text-xs text-red-700 font-semibold">
-                            ⚠️ {forecast.warningDesc}
-                          </p>
-                        </div>
-                      )}
-                    </div>
+                    <p className="text-base font-semibold text-slate-100">Geser ke samping untuk melihat prakiraan</p>
                   </div>
+                </aside>
+
+                {forecastData.map((forecast, index) => (
+                  <article
+                    key={`${forecast.validFrom}-${index}`}
+                    className="w-[320px] flex-shrink-0 rounded-3xl border border-gray-200 bg-[#f8f8fb] p-5 shadow-sm"
+                  >
+                    <div className="mb-4 flex items-start justify-between gap-3">
+                      <h4 className="text-xl font-bold text-slate-800">{forecast.timeDesc}</h4>
+                      <span className="rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-600">
+                        {getHourLabel(index)}
+                      </span>
+                    </div>
+
+                    <div className="mb-4 text-center">
+                      <div className="text-4xl">{forecast.weatherIcon}</div>
+                      <p className="mt-2 text-lg leading-tight text-slate-800">
+                        {forecast.weatherDesc || forecast.weather}
+                      </p>
+                    </div>
+
+                    <hr className="mb-4 border-gray-200" />
+
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-base text-slate-700">
+                      <p className="font-semibold text-slate-500">Angin</p>
+                      <p className="font-semibold text-slate-500">Gelombang</p>
+
+                      <p>{forecast.windFrom} - {forecast.windTo || '-'}</p>
+                      <p>
+                        <span className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ${getWaveBadgeClass(forecast.waveCat)}`}>
+                          {forecast.waveCat || '-'}
+                        </span>
+                      </p>
+
+                      <p>{forecast.windSpeedMin} - {forecast.windSpeedMax} knot</p>
+                      <p>{forecast.waveDesc || '-'}</p>
+                    </div>
+                  </article>
                 ))}
               </div>
             </div>

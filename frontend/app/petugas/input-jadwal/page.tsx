@@ -16,6 +16,9 @@ export default function JadwalPage() {
   const { setTitle } = usePageTitle();
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
 
   useEffect(() => {
     setTitle('Input Jadwal');
@@ -81,29 +84,107 @@ export default function JadwalPage() {
     },
   ]);
 
+  const jamOptions = [
+  "08:00",
+  "11:00",
+  "14:00",
+  "17:00",
+  "20:00"
+];
+
   const handleEdit = (id: number) => {
-    alert(`Edit jadwal dengan ID: ${id}`);
-    // TODO: Implement edit functionality
+    const selected = jadwalData.find(item => item.id === id);
+    if (!selected) return;
+
+    setSelectedId(id);
+    setFormData({
+      keberangkatan: selected.keberangkatan,
+      kedatangan: selected.kedatangan,
+      jam: selected.jam,
+      armada: selected.armada,
+    });
+    setShowEditModal(true);
   };
 
   const handleDelete = (id: number) => {
-    if (confirm('Apakah Anda yakin ingin menghapus jadwal ini?')) {
-      setJadwalData(jadwalData.filter(item => item.id !== id));
-      alert('Jadwal berhasil dihapus!');
-    }
+    setSelectedId(id);
+    setShowDeleteModal(true);
   };
 
   const handleAddData = () => {
-    setShowAddModal(true);
-    // TODO: Implement add modal
-    alert('Form tambah jadwal akan muncul');
+  setShowAddModal(true);
+};
+
+  const filteredData = jadwalData.filter(item => {
+  const keywords = searchQuery.toLowerCase().split(" ");
+
+  return keywords.every(word =>
+    item.keberangkatan.toLowerCase().includes(word) ||
+    item.kedatangan.toLowerCase().includes(word) ||
+    item.armada.toLowerCase().includes(word) ||
+    item.jam.toLowerCase().includes(word)
+  );
+});
+
+const [formData, setFormData] = useState({
+  keberangkatan: '',
+  kedatangan: '',
+  jam: '',
+  armada: '',
+});
+
+const handleChange = (e: any) => {
+  setFormData({
+    ...formData,
+    [e.target.name]: e.target.value
+  });
+};
+
+const handleSubmit = () => {
+  const newData = {
+    id: jadwalData.length + 1,
+    ...formData
   };
 
-  const filteredData = jadwalData.filter(item =>
-    item.keberangkatan.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.kedatangan.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.armada.toLowerCase().includes(searchQuery.toLowerCase())
+  setJadwalData([...jadwalData, newData]);
+  setShowAddModal(false);
+
+  setFormData({
+    keberangkatan: '',
+    kedatangan: '',
+    jam: '',
+    armada: '',
+  });
+};
+
+const handleUpdate = () => {
+  if (selectedId == null) return;
+
+  setJadwalData(prev =>
+    prev.map(item =>
+      item.id === selectedId
+        ? { ...item, ...formData }
+        : item
+    )
   );
+
+  setShowEditModal(false);
+  setSelectedId(null);
+  setFormData({
+    keberangkatan: '',
+    kedatangan: '',
+    jam: '',
+    armada: '',
+  });
+};
+
+const handleConfirmDelete = () => {
+  if (selectedId == null) return;
+
+  setJadwalData(prev => prev.filter(item => item.id !== selectedId));
+  setShowDeleteModal(false);
+  setSelectedId(null);
+};
 
   return (
     <div className="m-7 p-8 bg-white rounded-lg shadow">
@@ -180,6 +261,183 @@ export default function JadwalPage() {
               ))}
             </tbody>
           </table>
+          {showAddModal && (
+            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+              <div className="bg-white backdrop-blur-md p-6 rounded-xl w-full max-w-[420px] shadow-2xl border border-white/30">
+                <h2 className="text-lg font-semibold mb-4">Tambah Jadwal</h2>
+
+                <select
+                  name="keberangkatan"
+                  value={formData.keberangkatan}
+                  onChange={handleChange}
+                  className="w-full mb-3 p-2 border rounded"
+                >
+                  <option value="">Pilih Keberangkatan</option>
+                  <option value="Banda Aceh">Banda Aceh</option>
+                  <option value="Sabang">Sabang</option>
+                </select>
+
+                <select
+                  name="kedatangan"
+                  value={formData.kedatangan}
+                  onChange={handleChange}
+                  className="w-full mb-3 p-2 border rounded"
+                >
+                  <option value="">Pilih Kedatangan</option>
+                  <option value="Banda Aceh">Banda Aceh</option>
+                  <option value="Sabang">Sabang</option>
+                </select>
+
+                <select
+                  name="jam"
+                  value={formData.jam}
+                  onChange={handleChange}
+                  className="w-full mb-3 p-2 border rounded"
+                >
+                  <option value="">Pilih Jam</option>
+                  {jamOptions.map((jam, index) => (
+                    <option key={index} value={jam}>
+                      {jam}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  name="armada"
+                  value={formData.armada}
+                  onChange={handleChange}
+                  className="w-full mb-4 p-2 border rounded"
+                >
+                  <option value="">Pilih Armada</option>
+                  <option value="KMP. BRR">KMP. BRR</option>
+                  <option value="KMP. Aceh Hebat">KMP. Aceh Hebat</option>
+                </select>
+
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={() => setShowAddModal(false)}
+                    className="px-4 py-2 bg-gray-300 rounded"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    onClick={handleSubmit}
+                    className="px-4 py-2 bg-green-600 text-white rounded"
+                  >
+                    Simpan
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showEditModal && (
+            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+              <div className="bg-white backdrop-blur-md p-6 rounded-xl w-full max-w-[420px] shadow-2xl border border-white/30">
+                <h2 className="text-lg font-semibold mb-4">Edit Jadwal</h2>
+
+                <select
+                  name="keberangkatan"
+                  value={formData.keberangkatan}
+                  onChange={handleChange}
+                  className="w-full mb-3 p-2 border rounded"
+                >
+                  <option value="">Pilih Keberangkatan</option>
+                  <option value="Banda Aceh">Banda Aceh</option>
+                  <option value="Sabang">Sabang</option>
+                </select>
+
+                <select
+                  name="kedatangan"
+                  value={formData.kedatangan}
+                  onChange={handleChange}
+                  className="w-full mb-3 p-2 border rounded"
+                >
+                  <option value="">Pilih Kedatangan</option>
+                  <option value="Banda Aceh">Banda Aceh</option>
+                  <option value="Sabang">Sabang</option>
+                </select>
+
+                <select
+                  name="jam"
+                  value={formData.jam}
+                  onChange={handleChange}
+                  className="w-full mb-3 p-2 border rounded"
+                >
+                  <option value="">Pilih Jam</option>
+                  {jamOptions.map((jam, index) => (
+                    <option key={index} value={jam}>
+                      {jam}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  name="armada"
+                  value={formData.armada}
+                  onChange={handleChange}
+                  className="w-full mb-4 p-2 border rounded"
+                >
+                  <option value="">Pilih Armada</option>
+                  <option value="KMP. BRR">KMP. BRR</option>
+                  <option value="KMP. Aceh Hebat">KMP. Aceh Hebat</option>
+                </select>
+
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={() => {
+                      setShowEditModal(false);
+                      setSelectedId(null);
+                      setFormData({
+                        keberangkatan: '',
+                        kedatangan: '',
+                        jam: '',
+                        armada: '',
+                      });
+                    }}
+                    className="px-4 py-2 bg-gray-300 rounded"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    onClick={handleUpdate}
+                    className="px-4 py-2 bg-blue-600 text-white rounded"
+                  >
+                    Simpan Perubahan
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showDeleteModal && (
+            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+              <div className="bg-white p-6 rounded-xl w-full max-w-[380px] shadow-2xl border border-white/30">
+                <h2 className="text-lg font-semibold mb-2">Hapus Jadwal</h2>
+                <p className="text-sm text-gray-600 mb-5">
+                  Apakah Anda yakin ingin menghapus jadwal ini? Tindakan ini tidak dapat dibatalkan.
+                </p>
+
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={() => {
+                      setShowDeleteModal(false);
+                      setSelectedId(null);
+                    }}
+                    className="px-4 py-2 bg-gray-300 rounded"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    onClick={handleConfirmDelete}
+                    className="px-4 py-2 bg-red-600 text-white rounded"
+                  >
+                    Hapus
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* No Data Message */}

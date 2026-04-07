@@ -1,10 +1,22 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Layout from '@/app/petugas/layout';
 import { usePageTitle } from '@/app/petugas/layout';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
-import Image from 'next/image';
+import { Users, Minus, Ship } from 'lucide-react';
+
+interface HistorisData {
+  id: number;
+  keberangkatan: string;
+  tujuan: string;
+  tanggal: string;
+  penumpang: number;
+  kendaraan: number;
+  muatan: number;
+  armada: string;
+}
 
 const trendData = [
   { name: 'Jul', value: 200 },
@@ -18,6 +30,30 @@ const trendData = [
 
 export default function DashboardPage() {
   const { setTitle } = usePageTitle();
+  const router = useRouter();
+
+  // Data Historis Pelayaran
+  const [historisData] = useState<HistorisData[]>([
+    { id: 1, keberangkatan: 'Banda Aceh', tujuan: 'Sabang', tanggal: '2024-01-15', penumpang: 450, kendaraan: 12, muatan: 2500, armada: 'KMP. BRR' },
+    { id: 2, keberangkatan: 'Sabang', tujuan: 'Banda Aceh', tanggal: '2024-01-16', penumpang: 380, kendaraan: 10, muatan: 2200, armada: 'KMP. Aceh Hebat' },
+    { id: 3, keberangkatan: 'Banda Aceh', tujuan: 'Sabang', tanggal: '2024-01-17', penumpang: 520, kendaraan: 15, muatan: 2800, armada: 'KMP. BRR' },
+    { id: 4, keberangkatan: 'Sabang', tujuan: 'Banda Aceh', tanggal: '2024-01-18', penumpang: 410, kendaraan: 11, muatan: 2400, armada: 'KMP. Aceh Hebat' },
+    { id: 5, keberangkatan: 'Banda Aceh', tujuan: 'Sabang', tanggal: '2024-01-19', penumpang: 490, kendaraan: 13, muatan: 2600, armada: 'KMP. BRR' },
+  ]);
+
+  const totalPenumpang = historisData.reduce((sum, item) => sum + item.penumpang, 0);
+  const totalMuatan = historisData.reduce((sum, item) => sum + item.muatan, 0);
+  const totalPerjalanan = historisData.length;
+
+  const [stats] = useState({
+    penumpang: totalPenumpang,
+    muatan: totalMuatan,
+    pelayaran: totalPerjalanan
+  });
+
+  const handleDetailClick = () => {
+    router.push('/petugas/historis-pelayaran');
+  };
 
   useEffect(() => {
     setTitle('Dashboard');
@@ -25,51 +61,80 @@ export default function DashboardPage() {
 
   return (
     <div className="p-8 m-7 bg-white rounded-lg shadow">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-3 gap-6 mb-8 ">
-        <div className="bg-emerald-400 text-white p-6 rounded-lg shadow-md">
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="text-4xl font-bold mb-2">2,734</h3>
-              <p className="text-sm">Penumpang bulan ini</p>
-            </div>
-            <div className="p-3 bg-white/20 rounded-full">
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/>
-              </svg>
+      <div className="grid grid-cols-3 gap-6 mb-8">
+        {/* Card 1 - Penumpang */}
+        <div className="bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl shadow-lg overflow-hidden">
+          <div className="p-8 relative">
+            <div className="flex justify-between items-start">
+              <div className="flex-1">
+                <div className="text-5xl font-bold text-white mb-3">
+                  {stats.penumpang.toLocaleString()}
+                </div>
+                <div className="text-white text-sm font-medium">
+                  Penumpang
+                </div>
+                <div 
+                  onClick={handleDetailClick}
+                  className="text-white text-xs mt-4 hover:underline cursor-pointer"
+                >
+                  Detail →
+                </div>
+              </div>
+              <div className="bg-white/20 rounded-full p-4 flex-shrink-0">
+                <Users className="w-8 h-8 text-white" strokeWidth={2} />
+              </div>
             </div>
           </div>
-          <button className="mt-4 text-sm hover:underline">Detail →</button>
         </div>
 
-        <div className="bg-blue-400 text-white p-6 rounded-lg shadow-md">
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="text-4xl font-bold mb-2">6</h3>
-              <p className="text-sm">Berat muatan bulan ini</p>
-            </div>
-            <div className="p-3 bg-white/20 rounded-full">
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4z"/>
-              </svg>
+        {/* Card 2 - Berat Muatan */}
+        <div className="bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl shadow-lg overflow-hidden">
+          <div className="p-8 relative">
+            <div className="flex justify-between items-start">
+              <div className="flex-1">
+                <div className="text-5xl font-bold text-white mb-3">
+                  {(stats.muatan / 1000).toFixed(1)}K
+                </div>
+                <div className="text-white text-sm font-medium">
+                  Berat muatan (kg)
+                </div>
+                <div 
+                  onClick={handleDetailClick}
+                  className="text-white text-xs mt-4 hover:underline cursor-pointer"
+                >
+                  Detail →
+                </div>
+              </div>
+              <div className="bg-white/20 rounded-full p-4 flex-shrink-0">
+                <Minus className="w-8 h-8 text-white" strokeWidth={2} />
+              </div>
             </div>
           </div>
-          <button className="mt-4 text-sm hover:underline">Detail →</button>
         </div>
 
-        <div className="bg-indigo-400 text-white p-6 rounded-lg shadow-md">
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="text-4xl font-bold mb-2">300</h3>
-              <p className="text-sm">Kapal berangkat bulan ini</p>
-            </div>
-            <div className="p-3 bg-white/20 rounded-full">
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-              </svg>
+        {/* Card 3 - Jumlah Perjalanan */}
+        <div className="bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl shadow-lg overflow-hidden">
+          <div className="p-8 relative">
+            <div className="flex justify-between items-start">
+              <div className="flex-1">
+                <div className="text-5xl font-bold text-white mb-3">
+                  {stats.pelayaran}
+                </div>
+                <div className="text-white text-sm font-medium">
+                  Perjalanan
+                </div>
+                <div 
+                  onClick={handleDetailClick}
+                  className="text-white text-xs mt-4 hover:underline cursor-pointer"
+                >
+                  Detail →
+                </div>
+              </div>
+              <div className="bg-white/20 rounded-full p-4 flex-shrink-0">
+                <Ship className="w-8 h-8 text-white" strokeWidth={2} />
+              </div>
             </div>
           </div>
-          <button className="mt-4 text-sm hover:underline">Detail →</button>
         </div>
       </div>
 

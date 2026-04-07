@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { usePageTitle } from '@/app/admin/layout';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 
@@ -30,6 +31,9 @@ interface DataRute {
 
 export default function DataMasterPage() {
   const { setTitle } = usePageTitle();
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get('tab') as 'kapal' | 'pelabuhan' | 'rute' | null;
+  
   const [activeTab, setActiveTab] = useState<'kapal' | 'pelabuhan' | 'rute'>('kapal');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -39,7 +43,11 @@ export default function DataMasterPage() {
 
   useEffect(() => {
     setTitle('Data Master');
-  }, [setTitle]);
+    // Set active tab dari URL parameter jika ada
+    if (tabParam && ['kapal', 'pelabuhan', 'rute'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [setTitle, tabParam]);
 
   // Data Kapal
   const [dataKapal, setDataKapal] = useState<DataKapal[]>([

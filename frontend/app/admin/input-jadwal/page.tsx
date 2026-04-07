@@ -412,25 +412,25 @@ export default function JadwalPage() {
 
           {showDeleteModal && (
             <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-center z-50 p-4">
-              <div className="bg-white p-6 rounded-xl w-full max-w-[380px] shadow-2xl border border-white/30">
-                <h2 className="text-lg font-semibold mb-2">Hapus Jadwal</h2>
-                <p className="text-sm text-gray-600 mb-5">
+              <div className="bg-white w-full max-w-[540px] rounded-[18px] shadow-2xl px-8 py-9 border border-gray-100">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Hapus Jadwal</h2>
+                <p className="text-base text-gray-600 leading-relaxed max-w-[430px]">
                   Apakah Anda yakin ingin menghapus jadwal ini? Tindakan ini tidak dapat dibatalkan.
                 </p>
 
-                <div className="flex justify-end gap-2">
+                <div className="flex justify-end gap-3 mt-8">
                   <button
                     onClick={() => {
                       setShowDeleteModal(false);
                       setSelectedId(null);
                     }}
-                    className="px-4 py-2 bg-gray-300 rounded"
+                    className="min-w-[96px] px-6 py-3 bg-[#D1D5DB] text-gray-900 rounded-md text-base font-medium hover:bg-gray-400 transition-colors"
                   >
                     Batal
                   </button>
                   <button
                     onClick={handleConfirmDelete}
-                    className="px-4 py-2 bg-red-600 text-white rounded"
+                    className="min-w-[96px] px-6 py-3 bg-[#E30613] text-white rounded-md text-base font-medium hover:bg-red-700 transition-colors"
                   >
                     Hapus
                   </button>

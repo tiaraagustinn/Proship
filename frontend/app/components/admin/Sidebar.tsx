@@ -11,7 +11,7 @@ export default function AdminSidebar() {
 
   const menuItems = [
     { name: 'Dashboard', path: '/admin/dashboard', title: 'Dashboard' },
-    { name: 'Manajemen Akun Petugas', path: '/admin/manajemen-petugas', title: 'Manajemen Akun Petugas' },
+    { name: 'Manajemen Akun Petugas', path: '/admin/manajemen-akun', title: 'Manajemen Akun Petugas' },
     { name: 'Data Master', path: '/admin/data-master', title: 'Data Master' },
     { name: 'Input Jadwal', path: '/admin/input-jadwal', title: 'Jadwal' },
     { name: 'Historis Pelayaran', path: '/admin/historis-pelayaran', title: 'Historis Pelayaran' },

@@ -541,18 +541,29 @@ export default function DataMasterPage() {
             )}
 
             <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="px-4 py-2 bg-gray-300 rounded"
-              >
-                Batal
-              </button>
-              <button
-                onClick={activeTab === 'kapal' ? handleSubmitKapal : () => setShowAddModal(false)}
-                className="px-4 py-2 bg-green-600 text-white rounded"
-              >
-                Simpan
-              </button>
+              {activeTab === 'kapal' ? (
+                <>
+                  <button
+                    onClick={() => setShowAddModal(false)}
+                    className="px-4 py-2 bg-gray-300 rounded"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    onClick={handleSubmitKapal}
+                    className="px-4 py-2 bg-green-600 text-white rounded"
+                  >
+                    Simpan
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setShowAddModal(false)}
+                  className="px-4 py-2 bg-green-600 text-white rounded"
+                >
+                  Kembali
+                </button>
+              )}
             </div>
           </div>
         </div>

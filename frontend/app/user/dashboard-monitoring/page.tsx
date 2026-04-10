@@ -60,9 +60,9 @@ export default function DashboardMonitoringPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-black">
           <h1 className="text-3xl font-bold mb-6 tracking-tight">Dashboard Monitoring</h1>
 
-          <div className="bg-white/90 backdrop-blur rounded-xl border border-sky-100 shadow-sm p-4 sm:p-5 mb-8">
-            <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto] gap-4 items-end">
-              <div>
+          <div className="bg-white/90 backdrop-blur rounded-xl border border-sky-100 shadow-sm p-3 sm:p-5 mb-8">
+            <div className="flex flex-col md:flex-row md:items-end gap-3 md:gap-2">
+              <div className="flex-none">
                 <label className="block text-sm font-medium mb-1 text-slate-700">Mulai dari tanggal</label>
                 <DatePicker
                   selected={startDate}
@@ -71,23 +71,25 @@ export default function DashboardMonitoringPage() {
                   placeholderText="Pilih tanggal"
                 />
               </div>
-              <div className="hidden md:flex justify-center text-slate-500">s/d</div>
-              <div>
-                <label className="block text-sm font-medium mb-1 text-slate-700">Hingga tanggal</label>
-                <DatePicker
-                  selected={endDate}
-                  onChange={(date) => setEndDate(date)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-300"
-                  placeholderText="Pilih tanggal"
-                />
+              <div className="flex items-end gap-2">
+                <span className="text-slate-500 mb-0.5 ml-5 mr-5">s/d</span>
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-slate-700">Hingga tanggal</label>
+                  <DatePicker
+                    selected={endDate}
+                    onChange={(date) => setEndDate(date)}
+                    className="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-300 w-48 mr-5"
+                    placeholderText="Pilih tanggal"
+                  />
+                </div>
+                <button
+                  onClick={handleFilter}
+                  disabled={!startDate || !endDate}
+                  className="h-[42px] px-5 py-2 bg-sky-600 text-white rounded-lg font-medium hover:bg-sky-700 transition-colors disabled:bg-slate-400"
+                >
+                  Terapkan Filter
+                </button>
               </div>
-              <button
-                onClick={handleFilter}
-                disabled={!startDate || !endDate}
-                className="h-[42px] px-5 py-2 bg-sky-600 text-white rounded-lg font-medium hover:bg-sky-700 transition-colors disabled:bg-slate-400"
-              >
-                Terapkan Filter
-              </button>
             </div>
           </div>
 

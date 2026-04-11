@@ -6,6 +6,8 @@ import weatherForestRoutes from './src/routes/weatherForestRoutes.js';
 import weatherDetailRoutes from './src/routes/weatherDetailRoutes.js';
 import dummyRoutes from './src/routes/dummyRoutes.js';
 import fuzzyRoutes from './src/routes/fuzzyRoutes.js';
+import jadwalRoutes from './src/routes/jadwalRoutes.js';
+import authRoutes from './src/routes/authRoutes.js';
 
 
 const app = express();
@@ -21,12 +23,16 @@ app.get("/", (req, res) => {
   res.json({ message: "Backend berjalan dengan baik" });
 });
 
+// ✅ Auth routes
+app.use('/api/auth', authRoutes);
+
 // ✅ Weather routes
 app.use('/api/weather', weatherCardRoutes);
 app.use('/api/maritim-weather', weatherForestRoutes);
 app.use('/api/detail', weatherDetailRoutes);
 app.use('/api/dummy', dummyRoutes);
 app.use('/api/fuzzy', fuzzyRoutes);
+app.use('/api/jadwal', jadwalRoutes);
 
 // ✅ 404 Handler
 app.use((req, res) => {

@@ -50,22 +50,27 @@ export default function PetugasLoginPage() {
       if (response.ok) {
         const data = await response.json();
         localStorage.setItem('token', data.token);
+        localStorage.setItem('userId', data.userId);
         localStorage.setItem('userName', data.userName || loginData.username);
-        router.push('/petugas/dashboard');
+        localStorage.setItem('username', data.username);
+        localStorage.setItem('role', data.role);
+        localStorage.setItem('email', data.email);
+        
+        // Redirect berdasarkan role
+        if (data.role === 'admin') {
+          router.push('/admin/dashboard');
+        } else if (data.role === 'petugas') {
+          router.push('/petugas/dashboard');
+        } else {
+          router.push('/user/dashboard-monitoring');
+        }
       } else {
         const errorData = await response.json();
         setError(errorData.message || 'Username atau password salah');
       }
     } catch (error) {
       console.error('Login error:', error);
-      
-      // For development: Allow login without backend
-      if (loginData.username && loginData.password) {
-        localStorage.setItem('userName', loginData.username);
-        router.push('/petugas/dashboard');
-      } else {
-        setError('Terjadi kesalahan. Silakan coba lagi.');
-      }
+      setError('Terjadi kesalahan. Silakan coba lagi.');
     } finally {
       setIsLoading(false);
     }

@@ -2,16 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { usePageTitle } from '@/app/admin/layout';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, AlertCircle, CheckCircle } from 'lucide-react';
 
 interface AkunPetugas {
-  id: number;
-  nip: string;
+  id_petugas: number;
+  username: string;
   nama: string;
   email: string;
-  noTelepon: string;
-  status: 'AKTIF' | 'Nonaktif';
+  role: string;
+  status: 'aktif' | 'nonaktif';
 }
+
+const API_URL = 'http://localhost:5000/api';
 
 export default function ManajemenAkunPage() {
   const { setTitle } = usePageTitle();
@@ -20,138 +22,81 @@ export default function ManajemenAkunPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [formData, setFormData] = useState({
-    nip: '',
+    username: '',
     nama: '',
     email: '',
-    noTelepon: '',
-    status: 'AKTIF' as 'AKTIF' | 'Nonaktif',
+    role: 'petugas' as string,
+    password: '',
+    status: 'aktif' as 'aktif' | 'nonaktif',
   });
+
+  const [akunData, setAkunData] = useState<AkunPetugas[]>([]);
 
   useEffect(() => {
     setTitle('Manajemen Akun');
+    fetchPetugas();
   }, [setTitle]);
 
-  const [akunData, setAkunData] = useState<AkunPetugas[]>([
-    {
-      id: 1,
-      nip: '237874683479283',
-      nama: 'Roy Mustang',
-      email: 'RoyMustang@gmail.com',
-      noTelepon: '08045074054',
-      status: 'AKTIF',
-    },
-    {
-      id: 2,
-      nip: '237874683479283',
-      nama: 'Roy Mustang',
-      email: 'RoyMustang@gmail.com',
-      noTelepon: '08045074054',
-      status: 'Nonaktif',
-    },
-    {
-      id: 3,
-      nip: '237874683479283',
-      nama: 'Roy Mustang',
-      email: 'RoyMustang@gmail.com',
-      noTelepon: '08045074054',
-      status: 'AKTIF',
-    },
-    {
-      id: 4,
-      nip: '237874683479283',
-      nama: 'Roy Mustang',
-      email: 'RoyMustang@gmail.com',
-      noTelepon: '08045074054',
-      status: 'Nonaktif',
-    },
-    {
-      id: 5,
-      nip: '237874683479283',
-      nama: 'Roy Mustang',
-      email: 'RoyMustang@gmail.com',
-      noTelepon: '08045074054',
-      status: 'AKTIF',
-    },
-    {
-      id: 6,
-      nip: '237874683479283',
-      nama: 'Roy Mustang',
-      email: 'RoyMustang@gmail.com',
-      noTelepon: '08045074054',
-      status: 'Nonaktif',
-    },
-    {
-      id: 7,
-      nip: '237874683479283',
-      nama: 'Roy Mustang',
-      email: 'RoyMustang@gmail.com',
-      noTelepon: '08045074054',
-      status: 'AKTIF',
-    },
-    {
-      id: 8,
-      nip: '237874683479283',
-      nama: 'Roy Mustang',
-      email: 'RoyMustang@gmail.com',
-      noTelepon: '08045074054',
-      status: 'Nonaktif',
-    },
-    {
-      id: 9,
-      nip: '237874683479283',
-      nama: 'Roy Mustang',
-      email: 'RoyMustang@gmail.com',
-      noTelepon: '08045074054',
-      status: 'AKTIF',
-    },
-    {
-      id: 10,
-      nip: '237874683479283',
-      nama: 'Roy Mustang',
-      email: 'RoyMustang@gmail.com',
-      noTelepon: '08045074054',
-      status: 'Nonaktif',
-    },
-    {
-      id: 11,
-      nip: '237874683479283',
-      nama: 'Roy Mustang',
-      email: 'RoyMustang@gmail.com',
-      noTelepon: '08045074054',
-      status: 'AKTIF',
-    },
-  ]);
+  const fetchPetugas = async () => {
+    try {
+      setLoading(true);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
+      const response = await fetch(`${API_URL}/petugas`, {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) throw new Error('Gagal mengambil data');
+      const result = await response.json();
+      setAkunData(result.data || []);
+    } catch (err: any) {
+      if (err.name === 'AbortError') {
+        showNotification('error', 'Request timeout - server tidak merespons');
+      } else {
+        showNotification('error', 'Gagal mengambil data petugas');
+      }
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const showNotification = (type: 'success' | 'error', message: string) => {
+    setNotification({ type, message });
+    setTimeout(() => setNotification(null), 2000); // Shorter timeout - 2 seconds
+  };
 
   const handleAddAkun = () => {
     setFormData({
-      nip: '',
+      username: '',
       nama: '',
       email: '',
-      noTelepon: '',
-      status: 'AKTIF',
+      role: 'petugas',
+      password: '',
+      status: 'aktif',
     });
     setShowAddModal(true);
   };
 
   const handleEdit = (id: number) => {
-    const selected = akunData.find(item => item.id === id);
+    const selected = akunData.find(item => item.id_petugas === id);
     if (!selected) return;
 
     setSelectedId(id);
     setFormData({
-      nip: selected.nip,
+      username: selected.username,
       nama: selected.nama,
       email: selected.email,
-      noTelepon: selected.noTelepon,
+      role: selected.role,
+      password: '',
       status: selected.status,
     });
     setShowEditModal(true);
-  };
-
-  const handleViewInfo = (id: number) => {
-    // TODO: Implement view info functionality
-    alert(`View info untuk akun ID ${id}`);
   };
 
   const handleDelete = (id: number) => {
@@ -159,12 +104,23 @@ export default function ManajemenAkunPage() {
     setShowDeleteModal(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (selectedId === null) return;
 
-    setAkunData(prev => prev.filter(item => item.id !== selectedId));
-    setShowDeleteModal(false);
-    setSelectedId(null);
+    try {
+      const response = await fetch(`${API_URL}/petugas/${selectedId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) throw new Error('Gagal menghapus');
+      showNotification('success', 'Petugas berhasil dihapus');
+      setAkunData(prev => prev.filter(item => item.id_petugas !== selectedId));
+      setShowDeleteModal(false);
+      setSelectedId(null);
+    } catch (err) {
+      showNotification('error', 'Gagal menghapus petugas');
+      console.error(err);
+    }
   };
 
   const handleChange = (e: any) => {
@@ -174,64 +130,133 @@ export default function ManajemenAkunPage() {
     });
   };
 
-  const handleSubmit = () => {
-    const newData = {
-      id: akunData.length + 1,
-      ...formData
-    };
+  const handleSubmit = async () => {
+    if (!formData.username || !formData.nama || !formData.email || !formData.password || !formData.role) {
+      showNotification('error', 'Semua field harus diisi');
+      return;
+    }
 
-    setAkunData([...akunData, newData]);
-    setShowAddModal(false);
+    try {
+      const response = await fetch(`${API_URL}/petugas`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: formData.username,
+          nama: formData.nama,
+          email: formData.email,
+          password: formData.password,
+          role: formData.role,
+        }),
+      });
 
-    setFormData({
-      nip: '',
-      nama: '',
-      email: '',
-      noTelepon: '',
-      status: 'AKTIF',
-    });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Gagal menambahkan');
+      }
+
+      showNotification('success', 'Petugas berhasil ditambahkan');
+      setShowAddModal(false);
+      setFormData({
+        username: '',
+        nama: '',
+        email: '',
+        role: 'petugas',
+        password: '',
+        status: 'aktif',
+      });
+      fetchPetugas();
+    } catch (err: any) {
+      showNotification('error', err.message || 'Gagal menambahkan petugas');
+      console.error(err);
+    }
   };
 
-  const handleUpdate = () => {
-    if (selectedId == null) return;
+  const handleUpdate = async () => {
+    if (selectedId == null || !formData.username || !formData.nama || !formData.email || !formData.role) {
+      showNotification('error', 'Semua field harus diisi');
+      return;
+    }
 
-    setAkunData(prev =>
-      prev.map(item =>
-        item.id === selectedId
-          ? { ...item, ...formData }
-          : item
-      )
-    );
+    try {
+      const response = await fetch(`${API_URL}/petugas/${selectedId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: formData.username,
+          nama: formData.nama,
+          email: formData.email,
+          role: formData.role,
+          status: formData.status,
+        }),
+      });
 
-    setShowEditModal(false);
-    setSelectedId(null);
-    setFormData({
-      nip: '',
-      nama: '',
-      email: '',
-      noTelepon: '',
-      status: 'AKTIF',
-    });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Gagal mengupdate');
+      }
+
+      showNotification('success', 'Petugas berhasil diupdate');
+      setShowEditModal(false);
+      setSelectedId(null);
+      setFormData({
+        username: '',
+        nama: '',
+        email: '',
+        role: 'petugas',
+        password: '',
+        status: 'aktif',
+      });
+      fetchPetugas();
+    } catch (err: any) {
+      showNotification('error', err.message || 'Gagal mengupdate petugas');
+      console.error(err);
+    }
   };
 
   const filteredData = akunData.filter(item => {
     const keywords = searchQuery.toLowerCase().split(" ");
 
     return keywords.every(word =>
-      item.nip.toLowerCase().includes(word) ||
+      item.username.toLowerCase().includes(word) ||
       item.nama.toLowerCase().includes(word) ||
-      item.email.toLowerCase().includes(word) ||
-      item.noTelepon.toLowerCase().includes(word)
+      item.email.toLowerCase().includes(word)
     );
   });
 
+  if (loading) {
+    return (
+      <div className="m-7 p-8 bg-[#838383] rounded-lg shadow flex items-center justify-center min-h-[400px]">
+        <p className="text-white text-lg">Memuat data...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="m-7 p-8 bg-[#838383] rounded-lg shadow">
+      {/* Notification */}
+      {notification && (
+        <div className={`mb-4 p-4 rounded-lg flex items-center gap-2 ${
+          notification.type === 'success' 
+            ? 'bg-green-500 text-white' 
+            : 'bg-red-500 text-white'
+        }`}>
+          {notification.type === 'success' 
+            ? <CheckCircle className="w-5 h-5" />
+            : <AlertCircle className="w-5 h-5" />
+          }
+          <span>{notification.message}</span>
+        </div>
+      )}
+
       {/* Search and Add Button */}
       <div className="flex justify-between items-center mb-6">
         <input
           type="text"
-          placeholder="Cari akun petugas"
+          placeholder="Cari akun petugas (username, nama, email)"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="px-4 py-3 border border-gray-500 bg-[#D9D9D9] rounded-lg w-96 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-gray-600 shadow-lg"
@@ -251,10 +276,10 @@ export default function ManajemenAkunPage() {
           <table className="w-full">
             <thead>
               <tr className="bg-teal-800 text-white">
-                <th className="p-4 text-center font-semibold">NIP</th>
+                <th className="p-4 text-center font-semibold">Username</th>
                 <th className="p-4 text-center font-semibold">Nama</th>
                 <th className="p-4 text-center font-semibold">Email</th>
-                <th className="p-4 text-center font-semibold">No. Telepon</th>
+                <th className="p-4 text-center font-semibold">Role</th>
                 <th className="p-4 text-center font-semibold">Status</th>
                 <th className="p-4 text-center font-semibold">Aksi</th>
               </tr>
@@ -262,13 +287,13 @@ export default function ManajemenAkunPage() {
             <tbody>
               {filteredData.map((item, index) => (
                 <tr
-                  key={item.id}
+                  key={item.id_petugas}
                   className={`${
                     index % 2 === 0 ? 'bg-gray-200' : 'bg-white'
                   } hover:bg-gray-100 transition`}
                 >
                   <td className="p-4 text-center text-gray-800 border-r border-gray-300">
-                    {item.nip}
+                    {item.username}
                   </td>
                   <td className="p-4 text-center text-gray-800 border-r border-gray-300">
                     {item.nama}
@@ -277,26 +302,26 @@ export default function ManajemenAkunPage() {
                     {item.email}
                   </td>
                   <td className="p-4 text-center text-gray-800 border-r border-gray-300">
-                    {item.noTelepon}
+                    {item.role}
                   </td>
                   <td className="p-4 text-center border-r border-gray-300">
-                    <span className={`px-3 py-1 rounded text-white text-sm font-semibold ${item.status === 'AKTIF' ? 'bg-green-500' : 'bg-red-500'}`}>
-                      {item.status}
+                    <span className={`px-3 py-1 rounded text-white text-sm font-semibold ${item.status === 'aktif' ? 'bg-green-500' : 'bg-red-500'}`}>
+                      {item.status === 'aktif' ? 'AKTIF' : 'NONAKTIF'}
                     </span>
                   </td>
                   <td className="p-4">
                     <div className="flex justify-center gap-2">
                       <button
-                        onClick={() => handleEdit(item.id)}
+                        onClick={() => handleEdit(item.id_petugas)}
                         className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
                         title="Edit"
                       >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => handleDelete(item.id)}
+                        onClick={() => handleDelete(item.id_petugas)}
                         className="p-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
-                        title="Delete"
+                        title="Hapus"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -324,9 +349,9 @@ export default function ManajemenAkunPage() {
 
             <input
               type="text"
-              name="nip"
-              placeholder="NIP"
-              value={formData.nip}
+              name="username"
+              placeholder="Username"
+              value={formData.username}
               onChange={handleChange}
               className="w-full mb-3 p-2 border rounded"
             />
@@ -350,34 +375,34 @@ export default function ManajemenAkunPage() {
             />
 
             <input
-              type="text"
-              name="noTelepon"
-              placeholder="No. Telepon"
-              value={formData.noTelepon}
+              type="password"
+              name="password"
+              placeholder="Password"
+              value={formData.password}
               onChange={handleChange}
               className="w-full mb-3 p-2 border rounded"
             />
 
             <select
-              name="status"
-              value={formData.status}
+              name="role"
+              value={formData.role}
               onChange={handleChange}
               className="w-full mb-4 p-2 border rounded"
             >
-              <option value="AKTIF">AKTIF</option>
-              <option value="Nonaktif">Nonaktif</option>
+              <option value="petugas">Petugas</option>
+              <option value="admin">Admin</option>
             </select>
 
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setShowAddModal(false)}
-                className="px-4 py-2 bg-gray-300 rounded"
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
               >
                 Batal
               </button>
               <button
                 onClick={handleSubmit}
-                className="px-4 py-2 bg-green-600 text-white rounded"
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
               >
                 Simpan
               </button>
@@ -394,9 +419,9 @@ export default function ManajemenAkunPage() {
 
             <input
               type="text"
-              name="nip"
-              placeholder="NIP"
-              value={formData.nip}
+              name="username"
+              placeholder="Username"
+              value={formData.username}
               onChange={handleChange}
               className="w-full mb-3 p-2 border rounded"
             />
@@ -419,14 +444,15 @@ export default function ManajemenAkunPage() {
               className="w-full mb-3 p-2 border rounded"
             />
 
-            <input
-              type="text"
-              name="noTelepon"
-              placeholder="No. Telepon"
-              value={formData.noTelepon}
+            <select
+              name="role"
+              value={formData.role}
               onChange={handleChange}
               className="w-full mb-3 p-2 border rounded"
-            />
+            >
+              <option value="petugas">Petugas</option>
+              <option value="admin">Admin</option>
+            </select>
 
             <select
               name="status"
@@ -434,9 +460,13 @@ export default function ManajemenAkunPage() {
               onChange={handleChange}
               className="w-full mb-4 p-2 border rounded"
             >
-              <option value="AKTIF">AKTIF</option>
-              <option value="Nonaktif">Nonaktif</option>
+              <option value="aktif">Aktif</option>
+              <option value="nonaktif">Nonaktif</option>
             </select>
+
+            <p className="text-xs text-gray-500 mb-4">
+              {formData.status === 'nonaktif' && 'Petugas dengan status NONAKTIF tidak dapat login'}
+            </p>
 
             <div className="flex justify-end gap-2">
               <button
@@ -444,20 +474,21 @@ export default function ManajemenAkunPage() {
                   setShowEditModal(false);
                   setSelectedId(null);
                   setFormData({
-                    nip: '',
+                    username: '',
                     nama: '',
                     email: '',
-                    noTelepon: '',
-                    status: 'AKTIF',
+                    role: 'petugas',
+                    password: '',
+                    status: 'aktif',
                   });
                 }}
-                className="px-4 py-2 bg-gray-300 rounded"
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
               >
                 Batal
               </button>
               <button
                 onClick={handleUpdate}
-                className="px-4 py-2 bg-blue-600 text-white rounded"
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
               >
                 Simpan Perubahan
               </button>

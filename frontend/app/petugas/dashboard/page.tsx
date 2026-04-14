@@ -31,6 +31,15 @@ const trendData = [
 export default function DashboardPage() {
   const { setTitle } = usePageTitle();
   const router = useRouter();
+  const [userName, setUserName] = useState('Petugas');
+
+  // Get logged-in user data
+  useEffect(() => {
+    const storedName = localStorage.getItem('userName');
+    if (storedName) {
+      setUserName(storedName);
+    }
+  }, []);
 
   // Data Historis Pelayaran
   const [historisData] = useState<HistorisData[]>([
@@ -61,6 +70,12 @@ export default function DashboardPage() {
 
   return (
     <div className="p-8 m-7 bg-white rounded-lg shadow">
+      {/* Greeting Section */}
+      <div className="mb-8 pb-6 border-b border-gray-200">
+        <h1 className="text-4xl font-bold text-gray-800">Selamat Datang, {userName}! 👋</h1>
+        <p className="text-gray-600 mt-2">Berikut adalah ringkasan aktivitas pelayaran Anda hari ini</p>
+      </div>
+
       <div className="grid grid-cols-3 gap-6 mb-8">
         {/* Card 1 - Penumpang */}
         <div className="bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl shadow-lg overflow-hidden">

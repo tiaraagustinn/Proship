@@ -3,41 +3,80 @@
 import { useState, useEffect, ChangeEvent } from 'react';
 import { usePageTitle } from '@/app/petugas/layout';
 import Image from 'next/image';
+import { AlertCircle, CheckCircle } from 'lucide-react';
 
 interface ProfileData {
+  id_petugas?: string;
+  username: string;
   fullName: string;
   email: string;
   phone: string;
-  company: string;
-  jobTitle: string;
-  aboutMe: string;
+  role: string;
   avatar: string | null;
 }
+
+const API_URL = 'http://localhost:5000/api';
 
 export default function ProfilPage() {
   const { setTitle } = usePageTitle();
   const [activeTab, setActiveTab] = useState('personal');
   const [isEditing, setIsEditing] = useState(false);
+  const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const [profileData, setProfileData] = useState<ProfileData>({
-    fullName: 'Tiara Agustin',
-    email: 'tiara@gmail.com',
-    phone: '082211110005',
-    company: 'Construction Professional Inc.',
-    jobTitle: 'Construction Manager',
-    aboutMe: 'Construction professional with 10+ years of experience. Passionate about sustainable building practices and reducing construction waste through material reuse.',
+    id_petugas: '',
+    username: '',
+    fullName: '',
+    email: '',
+    phone: '',
+    role: '',
     avatar: null,
   });
 
   useEffect(() => {
     setTitle('Profil');
     
-    // Load data from localStorage
+    // Load data from localStorage (from login)
+    const userId = localStorage.getItem('userId');
+    const userName = localStorage.getItem('userName');
+    const username = localStorage.getItem('username');
+    const userEmail = localStorage.getItem('email');
+    const userRole = localStorage.getItem('role');
     const savedProfile = localStorage.getItem('userProfile');
+    const savedAvatar = localStorage.getItem('userAvatar');
+
     if (savedProfile) {
-      setProfileData(JSON.parse(savedProfile));
+      const profile = JSON.parse(savedProfile);
+      setProfileData(prev => ({
+        ...prev,
+        ...profile,
+        id_petugas: userId || profile.id_petugas,
+        username: username || profile.username,
+        fullName: userName || profile.fullName,
+        email: userEmail || profile.email,
+        role: userRole || profile.role,
+      }));
+    } else {
+      // Use login data as default
+      setProfileData(prev => ({
+        ...prev,
+        id_petugas: userId || '',
+        username: username || '',
+        fullName: userName || '',
+        email: userEmail || '',
+        role: userRole || '',
+      }));
+    }
+
+    if (savedAvatar) {
+      setProfileData(prev => ({ ...prev, avatar: savedAvatar }));
     }
   }, [setTitle]);
+
+  const showNotification = (type: 'success' | 'error', message: string) => {
+    setNotification({ type, message });
+    setTimeout(() => setNotification(null), 2000);
+  };
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -63,12 +102,28 @@ export default function ProfilPage() {
   const handleSaveProfile = () => {
     localStorage.setItem('userProfile', JSON.stringify(profileData));
     localStorage.setItem('userName', profileData.fullName);
-    alert('Profil berhasil disimpan!');
+    localStorage.setItem('email', profileData.email);
+    showNotification('success', 'Profil berhasil disimpan!');
     setIsEditing(false);
   };
 
   return (
     <div className="p-8 m-7 bg-white rounded-lg shadow">
+      {/* Notification */}
+      {notification && (
+        <div className={`mb-4 p-4 rounded-lg flex items-center gap-2 ${
+          notification.type === 'success' 
+            ? 'bg-green-500 text-white' 
+            : 'bg-red-500 text-white'
+        }`}>
+          {notification.type === 'success' 
+            ? <CheckCircle className="w-5 h-5" />
+            : <AlertCircle className="w-5 h-5" />
+          }
+          <span>{notification.message}</span>
+        </div>
+      )}
+
       <div className="flex gap-8">
         {/* Left Sidebar - Profile Card */}
         <div className="w-80">
@@ -116,56 +171,6 @@ export default function ProfilPage() {
               >
                 Personal Information
               </button>
-              <button
-                onClick={() => setActiveTab('security')}
-                className={`w-full px-4 py-2 text-left rounded transition ${
-                  activeTab === 'security' 
-                    ? 'bg-gray-700 text-white' 
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                Account Security
-              </button>
-              <button
-                onClick={() => setActiveTab('notifications')}
-                className={`w-full px-4 py-2 text-left rounded transition ${
-                  activeTab === 'notifications' 
-                    ? 'bg-gray-700 text-white' 
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                Notifications
-              </button>
-              <button
-                onClick={() => setActiveTab('payment')}
-                className={`w-full px-4 py-2 text-left rounded transition ${
-                  activeTab === 'payment' 
-                    ? 'bg-gray-700 text-white' 
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                Payment Methods
-              </button>
-              <button
-                onClick={() => setActiveTab('shipping')}
-                className={`w-full px-4 py-2 text-left rounded transition ${
-                  activeTab === 'shipping' 
-                    ? 'bg-gray-700 text-white' 
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                Shipping Information
-              </button>
-              <button
-                onClick={() => setActiveTab('privacy')}
-                className={`w-full px-4 py-2 text-left rounded transition ${
-                  activeTab === 'privacy' 
-                    ? 'bg-gray-700 text-white' 
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                Privacy Settings
-              </button>
             </div>
           </div>
         </div>
@@ -177,6 +182,45 @@ export default function ProfilPage() {
               <h2 className="text-2xl font-bold mb-6">Personal Information</h2>
               
               <div className="space-y-4">
+                {/* ID Petugas */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    ID Petugas
+                  </label>
+                  <input
+                    type="text"
+                    value={profileData.id_petugas || ''}
+                    disabled
+                    className="w-full px-4 py-2 border border-gray-300 rounded bg-gray-200 text-gray-700 cursor-not-allowed"
+                  />
+                </div>
+
+                {/* Username */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Username
+                  </label>
+                  <input
+                    type="text"
+                    value={profileData.username || ''}
+                    disabled
+                    className="w-full px-4 py-2 border border-gray-300 rounded bg-gray-200 text-gray-700 cursor-not-allowed"
+                  />
+                </div>
+
+                {/* Role */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Role
+                  </label>
+                  <input
+                    type="text"
+                    value={profileData.role ? profileData.role.charAt(0).toUpperCase() + profileData.role.slice(1) : ''}
+                    disabled
+                    className="w-full px-4 py-2 border border-gray-300 rounded bg-gray-200 text-gray-700 cursor-not-allowed"
+                  />
+                </div>
+
                 {/* Full Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -221,51 +265,6 @@ export default function ProfilPage() {
                     className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-white disabled:text-gray-700"
                   />
                 </div>
-
-                {/* Company */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Company (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    name="company"
-                    value={profileData.company}
-                    onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-white disabled:text-gray-700"
-                  />
-                </div>
-
-                {/* Job Title */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Job Title (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    name="jobTitle"
-                    value={profileData.jobTitle}
-                    onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-white disabled:text-gray-700"
-                  />
-                </div>
-
-                {/* About Me */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    About Me (Optional)
-                  </label>
-                  <textarea
-                    name="aboutMe"
-                    value={profileData.aboutMe}
-                    onChange={handleInputChange}
-                    disabled={!isEditing}
-                    rows={4}
-                    className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-white disabled:text-gray-700 resize-none"
-                  />
-                </div>
               </div>
 
               {/* Action Button */}
@@ -294,20 +293,6 @@ export default function ProfilPage() {
                   </button>
                 )}
               </div>
-            </div>
-          )}
-
-          {/* Other tabs placeholder */}
-          {activeTab !== 'personal' && (
-            <div className="bg-gray-100 rounded-lg p-8">
-              <h2 className="text-2xl font-bold mb-6">
-                {activeTab === 'security' && 'Account Security'}
-                {activeTab === 'notifications' && 'Notifications'}
-                {activeTab === 'payment' && 'Payment Methods'}
-                {activeTab === 'shipping' && 'Shipping Information'}
-                {activeTab === 'privacy' && 'Privacy Settings'}
-              </h2>
-              <p className="text-gray-600">Content for this section will be available soon.</p>
             </div>
           )}
         </div>

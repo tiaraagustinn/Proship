@@ -14,9 +14,16 @@ interface DashboardStats {
 export default function AdminDashboardPage() {
   const { setTitle } = usePageTitle();
   const router = useRouter();
+  const [userName, setUserName] = useState('Admin');
   
   useEffect(() => {
     setTitle('Dashboard');
+    
+    // Get logged-in user data
+    const storedName = localStorage.getItem('userName');
+    if (storedName) {
+      setUserName(storedName);
+    }
   }, [setTitle]);
 
   // Data Akun Petugas untuk hitung aktif
@@ -69,6 +76,12 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="m-7 p-8 bg-[#838383] rounded-lg h-screen shadow">
+      {/* Greeting Section */}
+      <div className="mb-8 pb-6 border-b border-gray-300">
+        <h1 className="text-4xl font-bold text-white">Selamat Datang, {userName}! 👋</h1>
+        <p className="text-gray-100 mt-2">Berikut adalah ringkasan sistem manajemen pelayaran</p>
+      </div>
+
       <div className="grid grid-cols-3 gap-6">
         {/* Card 1 - Petugas Aktif */}
         <div className="bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl shadow-lg overflow-hidden">

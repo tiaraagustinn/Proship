@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { usePageTitle } from '@/app/admin/layout';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Clock } from 'lucide-react';
 
 interface DataKapal {
   id_kapal: number;
@@ -579,34 +579,19 @@ export default function DataMasterPage() {
                 </div>
               </>
             )}
-            {activeTab === 'pelabuhan' && (
-              <>
-                <input type="text" name="nama_pelabuhan" placeholder="Nama Pelabuhan" value={editFormData.nama_pelabuhan} onChange={handleEditInputChange} className="w-full mb-3 p-2 border rounded" />
-                <input type="text" name="alamat" placeholder="Alamat" value={editFormData.alamat} onChange={handleEditInputChange} className="w-full mb-3 p-2 border rounded" />
-                <input type="number" name="latitude" placeholder="Latitude" value={editFormData.latitude} onChange={handleEditInputChange} className="w-full mb-3 p-2 border rounded" step="0.00000001" />
-                <input type="number" name="longitude" placeholder="Longitude" value={editFormData.longitude} onChange={handleEditInputChange} className="w-full mb-4 p-2 border rounded" step="0.00000001" />
-                <div className="flex justify-end gap-2">
-                  <button onClick={() => setShowAddModal(false)} className="px-4 py-2 bg-gray-300 rounded">Batal</button>
-                  <button onClick={handleSubmitPelabuhan} className="px-4 py-2 bg-green-600 text-white rounded">Simpan</button>
+            {(activeTab === 'pelabuhan' || activeTab === 'rute') && (
+              <div className="text-center py-6">
+                <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Clock className="w-7 h-7 text-gray-400" />
                 </div>
-              </>
-            )}
-            {activeTab === 'rute' && (
-              <>
-                <select name="id_pelabuhan_asal" value={editFormData.id_pelabuhan_asal} onChange={handleEditInputChange} className="w-full mb-3 p-2 border rounded">
-                  <option value="">Pilih Pelabuhan Asal</option>
-                  {pelabuhanList.map(p => <option key={p.id_pelabuhan} value={p.id_pelabuhan}>{p.nama_pelabuhan}</option>)}
-                </select>
-                <select name="id_pelabuhan_tujuan" value={editFormData.id_pelabuhan_tujuan} onChange={handleEditInputChange} className="w-full mb-3 p-2 border rounded">
-                  <option value="">Pilih Pelabuhan Tujuan</option>
-                  {pelabuhanList.map(p => <option key={p.id_pelabuhan} value={p.id_pelabuhan}>{p.nama_pelabuhan}</option>)}
-                </select>
-                <input type="number" name="jarak_tempuh" placeholder="Jarak Tempuh (km)" value={editFormData.jarak_tempuh} onChange={handleEditInputChange} className="w-full mb-4 p-2 border rounded" step="0.01" />
-                <div className="flex justify-end gap-2">
-                  <button onClick={() => setShowAddModal(false)} className="px-4 py-2 bg-gray-300 rounded">Batal</button>
-                  <button onClick={handleSubmitRute} className="px-4 py-2 bg-green-600 text-white rounded">Simpan</button>
-                </div>
-              </>
+                <p className="font-semibold text-gray-700 mb-1">Fitur Segera Hadir</p>
+                <p className="text-sm text-gray-500 mb-6">
+                  Penambahan data {activeTab === 'pelabuhan' ? 'pelabuhan' : 'rute'} akan segera ditambahkan.
+                </p>
+                <button onClick={() => setShowAddModal(false)} className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                  Tutup
+                </button>
+              </div>
             )}
           </div>
         </div>

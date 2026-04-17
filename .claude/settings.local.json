@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mysql -u root -e \"USE db_proship; SHOW CREATE TABLE historis_angkutan\\\\G\")"
+    ]
+  }
+}

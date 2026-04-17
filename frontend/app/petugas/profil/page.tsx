@@ -23,6 +23,7 @@ export default function ProfilPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
+
   const [profileData, setProfileData] = useState<ProfileData>({
     id_petugas: '',
     username: '',
@@ -36,14 +37,14 @@ export default function ProfilPage() {
   useEffect(() => {
     setTitle('Profil');
     
-    // Load data from localStorage (from login)
-    const userId = localStorage.getItem('userId');
-    const userName = localStorage.getItem('userName');
-    const username = localStorage.getItem('username');
-    const userEmail = localStorage.getItem('email');
-    const userRole = localStorage.getItem('role');
-    const savedProfile = localStorage.getItem('userProfile');
-    const savedAvatar = localStorage.getItem('userAvatar');
+    // Load data from sessionStorage (from login)
+    const userId = sessionStorage.getItem('userId');
+    const userName = sessionStorage.getItem('userName');
+    const username = sessionStorage.getItem('username');
+    const userEmail = sessionStorage.getItem('email');
+    const userRole = sessionStorage.getItem('role');
+    const savedProfile = sessionStorage.getItem('userProfile');
+    const savedAvatar = sessionStorage.getItem('userAvatar');
 
     if (savedProfile) {
       const profile = JSON.parse(savedProfile);
@@ -93,22 +94,52 @@ export default function ProfilPage() {
       reader.onloadend = () => {
         const imageUrl = reader.result as string;
         setProfileData(prev => ({ ...prev, avatar: imageUrl }));
-        localStorage.setItem('userAvatar', imageUrl);
+        sessionStorage.setItem('userAvatar', imageUrl);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleSaveProfile = () => {
-    localStorage.setItem('userProfile', JSON.stringify(profileData));
-    localStorage.setItem('userName', profileData.fullName);
-    localStorage.setItem('email', profileData.email);
-    showNotification('success', 'Profil berhasil disimpan!');
-    setIsEditing(false);
+  const handleSaveProfile = async () => {
+    const id = profileData.id_petugas;
+    if (!id) {
+      showNotification('error', 'ID petugas tidak ditemukan.');
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/petugas/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: profileData.username,
+          nama: profileData.fullName,
+          email: profileData.email,
+          role: profileData.role,
+          status: 'aktif',
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        showNotification('error', 'Gagal menyimpan: ' + (err.message || 'Terjadi kesalahan.'));
+        return;
+      }
+
+      // Update sessionStorage setelah berhasil
+      sessionStorage.setItem('userName', profileData.fullName);
+      sessionStorage.setItem('email', profileData.email);
+      sessionStorage.setItem('userProfile', JSON.stringify(profileData));
+
+      showNotification('success', 'Profil berhasil diperbarui!');
+      setIsEditing(false);
+    } catch {
+      showNotification('error', 'Tidak dapat terhubung ke server.');
+    }
   };
 
   return (
-    <div className="p-8 m-7 bg-white rounded-lg shadow">
+    <div className="p-4 md:p-8 m-3 md:m-7 bg-white rounded-lg shadow">
       {/* Notification */}
       {notification && (
         <div className={`mb-4 p-4 rounded-lg flex items-center gap-2 ${
@@ -124,10 +155,10 @@ export default function ProfilPage() {
         </div>
       )}
 
-      <div className="flex gap-8">
+      <div className="flex flex-col md:flex-row gap-4 md:gap-8">
         {/* Left Sidebar - Profile Card */}
-        <div className="w-80">
-          <div className="p-6">
+        <div className="w-full md:w-72 lg:w-80 flex-shrink-0">
+          <div className="p-4 md:p-6">
             <h3 className="text-xl font-bold text-center mb-4">{profileData.fullName}</h3>
             
             {/* Avatar */}
@@ -164,8 +195,8 @@ export default function ProfilPage() {
               <button
                 onClick={() => setActiveTab('personal')}
                 className={`w-full px-4 py-2 text-left rounded transition ${
-                  activeTab === 'personal' 
-                    ? 'bg-gray-700 text-white' 
+                  activeTab === 'personal'
+                    ? 'bg-gray-700 text-white'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
@@ -178,8 +209,8 @@ export default function ProfilPage() {
         {/* Right Content - Personal Information */}
         <div className="flex-1">
           {activeTab === 'personal' && (
-            <div className="bg-gray-100 rounded-lg p-8">
-              <h2 className="text-2xl font-bold mb-6">Personal Information</h2>
+            <div className="bg-gray-100 rounded-lg p-4 md:p-8">
+              <h2 className="text-xl md:text-2xl font-bold mb-6">Personal Information</h2>
               
               <div className="space-y-4">
                 {/* ID Petugas */}

@@ -2,151 +2,147 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Layout from '@/app/petugas/layout';
 import { usePageTitle } from '@/app/petugas/layout';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
-import { Users, Minus, Ship } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Ship, Anchor, ClipboardList } from 'lucide-react';
 
-interface HistorisData {
-  id: number;
-  keberangkatan: string;
-  tujuan: string;
-  tanggal: string;
-  penumpang: number;
-  kendaraan: number;
-  muatan: number;
-  armada: string;
+interface DashboardStats {
+  jumlahPelabuhan: number;
+  jumlahKapal: number;
+  jumlahPerjalanan: number;
 }
 
-const trendData = [
-  { name: 'Jul', value: 200 },
-  { name: 'Aug', value: 300 },
-  { name: 'Sep', value: 500 },
-  { name: 'Oct', value: 750 },
-  { name: 'Nov', value: 400 },
-  { name: 'Dec', value: 600 },
-  { name: 'Jan', value: 650 },
-];
+interface TrendPoint {
+  name: string;
+  value: number;
+}
+
+const BULAN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+
+function buildTrendData(historisList: { tanggal: string; jumlahPenumpang: number }[]): TrendPoint[] {
+  const map: Record<string, number> = {};
+  historisList.forEach(item => {
+    const datePart = String(item.tanggal).substring(0, 7); // "YYYY-MM"
+    map[datePart] = (map[datePart] || 0) + (item.jumlahPenumpang || 0);
+  });
+  return Object.entries(map)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, value]) => {
+      const [, month] = key.split('-');
+      return { name: BULAN[parseInt(month, 10) - 1], value };
+    });
+}
 
 export default function DashboardPage() {
   const { setTitle } = usePageTitle();
   const router = useRouter();
   const [userName, setUserName] = useState('Petugas');
-
-  // Get logged-in user data
-  useEffect(() => {
-    const storedName = localStorage.getItem('userName');
-    if (storedName) {
-      setUserName(storedName);
-    }
-  }, []);
-
-  // Data Historis Pelayaran
-  const [historisData] = useState<HistorisData[]>([
-    { id: 1, keberangkatan: 'Banda Aceh', tujuan: 'Sabang', tanggal: '2024-01-15', penumpang: 450, kendaraan: 12, muatan: 2500, armada: 'KMP. BRR' },
-    { id: 2, keberangkatan: 'Sabang', tujuan: 'Banda Aceh', tanggal: '2024-01-16', penumpang: 380, kendaraan: 10, muatan: 2200, armada: 'KMP. Aceh Hebat' },
-    { id: 3, keberangkatan: 'Banda Aceh', tujuan: 'Sabang', tanggal: '2024-01-17', penumpang: 520, kendaraan: 15, muatan: 2800, armada: 'KMP. BRR' },
-    { id: 4, keberangkatan: 'Sabang', tujuan: 'Banda Aceh', tanggal: '2024-01-18', penumpang: 410, kendaraan: 11, muatan: 2400, armada: 'KMP. Aceh Hebat' },
-    { id: 5, keberangkatan: 'Banda Aceh', tujuan: 'Sabang', tanggal: '2024-01-19', penumpang: 490, kendaraan: 13, muatan: 2600, armada: 'KMP. BRR' },
-  ]);
-
-  const totalPenumpang = historisData.reduce((sum, item) => sum + item.penumpang, 0);
-  const totalMuatan = historisData.reduce((sum, item) => sum + item.muatan, 0);
-  const totalPerjalanan = historisData.length;
-
-  const [stats] = useState({
-    penumpang: totalPenumpang,
-    muatan: totalMuatan,
-    pelayaran: totalPerjalanan
+  const [stats, setStats] = useState<DashboardStats>({
+    jumlahPelabuhan: 0,
+    jumlahKapal: 0,
+    jumlahPerjalanan: 0,
   });
-
-  const handleDetailClick = () => {
-    router.push('/petugas/historis-pelayaran');
-  };
+  const [trendData, setTrendData] = useState<TrendPoint[]>([]);
 
   useEffect(() => {
     setTitle('Dashboard');
+    const storedName = sessionStorage.getItem('userName');
+    if (storedName) setUserName(storedName);
   }, [setTitle]);
 
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const [pelabuhanRes, kapalRes, historisRes] = await Promise.all([
+          fetch('http://localhost:5000/api/pelabuhan'),
+          fetch('http://localhost:5000/api/kapal'),
+          fetch('http://localhost:5000/api/historis'),
+        ]);
+        const pelabuhanJson = await pelabuhanRes.json();
+        const kapalJson = await kapalRes.json();
+        const historisJson = await historisRes.json();
+
+        const historisList = historisJson.data || [];
+        setStats({
+          jumlahPelabuhan: (pelabuhanJson.data || []).length,
+          jumlahKapal: (kapalJson.data || []).length,
+          jumlahPerjalanan: historisList.length,
+        });
+        setTrendData(buildTrendData(historisList));
+      } catch (err) {
+        console.error('Gagal fetch stats:', err);
+      }
+    };
+    fetchStats();
+  }, []);
+
   return (
-    <div className="p-8 m-7 bg-white rounded-lg shadow">
-      {/* Greeting Section */}
-      <div className="mb-8 pb-6 border-b border-gray-200">
-        <h1 className="text-4xl font-bold text-gray-800">Selamat Datang, {userName}! 👋</h1>
-        <p className="text-gray-600 mt-2">Berikut adalah ringkasan aktivitas pelayaran Anda hari ini</p>
+    <div className="p-4 md:p-8 m-3 md:m-7 bg-white rounded-lg shadow">
+      {/* Greeting */}
+      <div className="mb-6 md:mb-8 pb-4 md:pb-6 border-b border-gray-200">
+        <h1 className="text-2xl md:text-4xl font-bold text-gray-800">Selamat Datang, {userName}! 👋</h1>
+        <p className="text-gray-600 mt-2 text-sm md:text-base">Berikut adalah ringkasan aktivitas pelayaran</p>
       </div>
 
-      <div className="grid grid-cols-3 gap-6 mb-8">
-        {/* Card 1 - Penumpang */}
-        <div className="bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl shadow-lg overflow-hidden">
-          <div className="p-8 relative">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
+        {/* Card 1 - Jumlah Pelabuhan */}
+        <div className="bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl shadow-lg overflow-hidden">
+          <div className="p-5 md:p-8">
             <div className="flex justify-between items-start">
               <div className="flex-1">
-                <div className="text-5xl font-bold text-white mb-3">
-                  {stats.penumpang.toLocaleString()}
-                </div>
-                <div className="text-white text-sm font-medium">
-                  Penumpang
-                </div>
-                <div 
-                  onClick={handleDetailClick}
-                  className="text-white text-xs mt-4 hover:underline cursor-pointer"
+                <div className="text-3xl md:text-5xl font-bold text-white mb-2 md:mb-3">{stats.jumlahPelabuhan}</div>
+                <div className="text-white text-sm font-medium">Jumlah Pelabuhan</div>
+                <div
+                  onClick={() => router.push('/petugas/input-jadwal')}
+                  className="text-white text-xs mt-3 md:mt-4 hover:underline cursor-pointer"
                 >
                   Detail →
                 </div>
               </div>
-              <div className="bg-white/20 rounded-full p-4 flex-shrink-0">
-                <Users className="w-8 h-8 text-white" strokeWidth={2} />
+              <div className="bg-white/20 rounded-full p-3 md:p-4 flex-shrink-0">
+                <Anchor className="w-6 h-6 md:w-8 md:h-8 text-white" strokeWidth={2} />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Card 2 - Berat Muatan */}
-        <div className="bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl shadow-lg overflow-hidden">
-          <div className="p-8 relative">
+        {/* Card 2 - Jumlah Kapal */}
+        <div className="bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl shadow-lg overflow-hidden">
+          <div className="p-5 md:p-8">
             <div className="flex justify-between items-start">
               <div className="flex-1">
-                <div className="text-5xl font-bold text-white mb-3">
-                  {(stats.muatan / 1000).toFixed(1)}K
-                </div>
-                <div className="text-white text-sm font-medium">
-                  Berat muatan (kg)
-                </div>
-                <div 
-                  onClick={handleDetailClick}
-                  className="text-white text-xs mt-4 hover:underline cursor-pointer"
+                <div className="text-3xl md:text-5xl font-bold text-white mb-2 md:mb-3">{stats.jumlahKapal}</div>
+                <div className="text-white text-sm font-medium">Jumlah Kapal</div>
+                <div
+                  onClick={() => router.push('/petugas/input-jadwal')}
+                  className="text-white text-xs mt-3 md:mt-4 hover:underline cursor-pointer"
                 >
                   Detail →
                 </div>
               </div>
-              <div className="bg-white/20 rounded-full p-4 flex-shrink-0">
-                <Minus className="w-8 h-8 text-white" strokeWidth={2} />
+              <div className="bg-white/20 rounded-full p-3 md:p-4 flex-shrink-0">
+                <Ship className="w-6 h-6 md:w-8 md:h-8 text-white" strokeWidth={2} />
               </div>
             </div>
           </div>
         </div>
 
         {/* Card 3 - Jumlah Perjalanan */}
-        <div className="bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl shadow-lg overflow-hidden">
-          <div className="p-8 relative">
+        <div className="bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl shadow-lg overflow-hidden sm:col-span-2 lg:col-span-1">
+          <div className="p-5 md:p-8">
             <div className="flex justify-between items-start">
               <div className="flex-1">
-                <div className="text-5xl font-bold text-white mb-3">
-                  {stats.pelayaran}
-                </div>
-                <div className="text-white text-sm font-medium">
-                  Perjalanan
-                </div>
-                <div 
-                  onClick={handleDetailClick}
-                  className="text-white text-xs mt-4 hover:underline cursor-pointer"
+                <div className="text-3xl md:text-5xl font-bold text-white mb-2 md:mb-3">{stats.jumlahPerjalanan}</div>
+                <div className="text-white text-sm font-medium">Historis Perjalanan</div>
+                <div
+                  onClick={() => router.push('/petugas/historis-pelayaran')}
+                  className="text-white text-xs mt-3 md:mt-4 hover:underline cursor-pointer"
                 >
                   Detail →
                 </div>
               </div>
-              <div className="bg-white/20 rounded-full p-4 flex-shrink-0">
-                <Ship className="w-8 h-8 text-white" strokeWidth={2} />
+              <div className="bg-white/20 rounded-full p-3 md:p-4 flex-shrink-0">
+                <ClipboardList className="w-6 h-6 md:w-8 md:h-8 text-white" strokeWidth={2} />
               </div>
             </div>
           </div>
@@ -154,33 +150,41 @@ export default function DashboardPage() {
       </div>
 
       {/* Chart */}
-      <div className="bg-black p-6 rounded-xl shadow-md">
-        <h3 className="text-white mb-6 text-lg font-semibold">
+      <div className="bg-black p-4 md:p-6 rounded-xl shadow-md">
+        <h3 className="text-white mb-4 md:mb-6 text-base md:text-lg font-semibold">
           Tren Pergerakan Jumlah Penumpang
         </h3>
-        <AreaChart width={1080} height={400} data={trendData}>
-          <defs>
-            <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8}/>
-              <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.1}/>
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-          <XAxis dataKey="name" stroke="#666" />
-          <YAxis stroke="#666" />
-          <Tooltip 
-            contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '8px' }}
-            labelStyle={{ color: '#fff' }}
-          />
-          <Area 
-            type="monotone" 
-            dataKey="value" 
-            stroke="#3B82F6" 
-            strokeWidth={2}
-            fillOpacity={1} 
-            fill="url(#colorValue)" 
-          />
-        </AreaChart>
+        {trendData.length === 0 ? (
+          <div className="flex items-center justify-center h-40 text-gray-500 text-sm">
+            Belum ada data historis pelayaran
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height={300}>
+            <AreaChart data={trendData}>
+              <defs>
+                <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.1} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+              <XAxis dataKey="name" stroke="#666" tick={{ fontSize: 12 }} />
+              <YAxis stroke="#666" tick={{ fontSize: 12 }} />
+              <Tooltip
+                contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '8px' }}
+                labelStyle={{ color: '#fff' }}
+              />
+              <Area
+                type="monotone"
+                dataKey="value"
+                stroke="#3B82F6"
+                strokeWidth={2}
+                fillOpacity={1}
+                fill="url(#colorValue)"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
       </div>
     </div>
   );

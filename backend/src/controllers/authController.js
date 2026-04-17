@@ -1,5 +1,6 @@
 import db from '../config/db.js';
 
+
 export const login = async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -11,34 +12,36 @@ export const login = async (req, res) => {
       });
     }
 
-    // Query database untuk mencari user
+    // Query database: cek username & password dulu, tanpa filter status
     const sql = `
       SELECT id_petugas, username, nama, role, status, email
       FROM petugas
-      WHERE username = ? AND password = ? AND status = 'aktif'
+      WHERE username = ? AND password = ?
     `;
 
     db.query(sql, [username, password], (err, results) => {
       if (err) {
         console.error('SQL ERROR:', err);
-        return res.status(500).json({ 
+        return res.status(500).json({
           error: 'Gagal mengakses database',
-          message: err.message 
+          message: err.message
         });
       }
 
+      // Kredensial salah
       if (results.length === 0) {
-        return res.status(401).json({ 
-          message: 'Username atau password salah' 
+        return res.status(401).json({
+          message: 'Username atau password salah'
         });
       }
 
       const user = results[0];
 
-      // Periksa status
+      // Kredensial benar tapi akun dinonaktifkan
       if (user.status !== 'aktif') {
-        return res.status(403).json({ 
-          message: 'Akun Anda tidak aktif' 
+        return res.status(403).json({
+          message: 'Akun Anda telah dinonaktifkan. Untuk pengaktifan kembali, silakan hubungi admin.',
+          code: 'ACCOUNT_INACTIVE'
         });
       }
 

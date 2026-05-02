@@ -73,21 +73,20 @@ export const getKapalById = async (req, res) => {
 // Create kapal
 export const createKapal = async (req, res) => {
   try {
-    const { nama_kapal, tipe_kapal, kapasitas, status } = req.body;
+    const { nama_kapal, tipe_kapal, kapasitas_muatan, kapasitas_kend_r2, kapasitas_kend_r4, kapasitas_penumpang, status_kapal } = req.body;
 
-    // Validasi input
-    if (!nama_kapal || !tipe_kapal || !kapasitas) {
+    if (!nama_kapal || !tipe_kapal || !kapasitas_muatan) {
       return res.status(400).json({
         message: 'Semua field harus diisi'
       });
     }
 
     const insertSql = `
-      INSERT INTO Kapal (nama_kapal, tipe_kapal, kapasitas, status)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO Kapal (nama_kapal, tipe_kapal, kapasitas_muatan, kapasitas_kend_r2, kapasitas_kend_r4, kapasitas_penumpang, status_kapal)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
 
-    db.query(insertSql, [nama_kapal, tipe_kapal, kapasitas, status || 'aktif'], (err, result) => {
+    db.query(insertSql, [nama_kapal, tipe_kapal, kapasitas_muatan, kapasitas_kend_r2 || 0, kapasitas_kend_r4 || 0, kapasitas_penumpang || 0, status_kapal || 'aktif'], (err, result) => {
       if (err) {
         console.error('SQL ERROR:', err);
         return res.status(500).json({
@@ -114,10 +113,9 @@ export const createKapal = async (req, res) => {
 export const updateKapal = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nama_kapal, tipe_kapal, kapasitas, status } = req.body;
+    const { nama_kapal, tipe_kapal, kapasitas_muatan, kapasitas_kend_r2, kapasitas_kend_r4, kapasitas_penumpang, status_kapal } = req.body;
 
-    // Validasi input
-    if (!nama_kapal || !tipe_kapal || !kapasitas) {
+    if (!nama_kapal || !tipe_kapal || !kapasitas_muatan) {
       return res.status(400).json({
         message: 'Semua field harus diisi'
       });
@@ -125,11 +123,11 @@ export const updateKapal = async (req, res) => {
 
     const sql = `
       UPDATE Kapal
-      SET nama_kapal = ?, tipe_kapal = ?, kapasitas = ?, status = ?
+      SET nama_kapal = ?, tipe_kapal = ?, kapasitas_muatan = ?, kapasitas_kend_r2 = ?, kapasitas_kend_r4 = ?, kapasitas_penumpang = ?, status_kapal = ?
       WHERE id_kapal = ?
     `;
 
-    db.query(sql, [nama_kapal, tipe_kapal, kapasitas, status, id], (err, result) => {
+    db.query(sql, [nama_kapal, tipe_kapal, kapasitas_muatan, kapasitas_kend_r2 || 0, kapasitas_kend_r4 || 0, kapasitas_penumpang || 0, status_kapal || 'aktif', id], (err, result) => {
       if (err) {
         console.error('SQL ERROR:', err);
         return res.status(500).json({

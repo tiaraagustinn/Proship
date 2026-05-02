@@ -23,6 +23,7 @@ interface JadwalData {
   jam: string;
   tanggal: string;
   armada: string;
+  status_jadwal: string;
   tingkat_keselamatan?: string;
 }
 
@@ -56,6 +57,7 @@ export default function JadwalPage() {
     id_kapal: '',
     tanggal: '',
     jam: '',
+    status_jadwal: 'terjadwal',
   });
 
   useEffect(() => {
@@ -99,6 +101,7 @@ export default function JadwalPage() {
       id_kapal: String(item.id_kapal),
       tanggal: item.tanggal || '',
       jam: item.jam ? item.jam.substring(0, 5) : '',
+      status_jadwal: item.status_jadwal || 'terjadwal',
     });
     setShowEditModal(true);
   };
@@ -113,7 +116,7 @@ export default function JadwalPage() {
   };
 
   const resetForm = () => {
-    setFormData({ id_rute: '', id_kapal: '', tanggal: '', jam: '' });
+    setFormData({ id_rute: '', id_kapal: '', tanggal: '', jam: '', status_jadwal: 'terjadwal' });
     setSelectedId(null);
   };
 
@@ -123,9 +126,10 @@ export default function JadwalPage() {
       return;
     }
     try {
+      const token = sessionStorage.getItem('token') || '';
       const res = await fetch(`${API}/jadwal`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(formData),
       });
       const result = await res.json();
@@ -165,7 +169,11 @@ export default function JadwalPage() {
     if (selectedId == null) return;
     try {
       const res = await fetch(`${API}/jadwal/${selectedId}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Gagal menghapus');
+      if (!res.ok) {
+        const result = await res.json();
+        alert(result.error || 'Gagal menghapus jadwal');
+        return;
+      }
       setShowDeleteModal(false);
       resetForm();
       fetchData();
@@ -226,8 +234,17 @@ export default function JadwalPage() {
           name="jam"
           value={formData.jam}
           onChange={handleChange}
-          className="w-full mb-4 p-2 border rounded"
+          className="w-full mb-3 p-2 border rounded"
         />
+
+        <label className="block text-sm text-gray-600 mb-1">Status Jadwal</label>
+        <select name="status_jadwal" value={formData.status_jadwal} onChange={handleChange} className="w-full mb-4 p-2 border rounded">
+          <option value="terjadwal">Terjadwal</option>
+          <option value="berlangsung">Berlangsung</option>
+          <option value="selesai">Selesai</option>
+          <option value="dibatalkan">Dibatalkan</option>
+          <option value="ditunda">Ditunda</option>
+        </select>
 
         <div className="flex justify-end gap-2">
           <button onClick={onCancel} className="px-4 py-2 bg-gray-300 rounded">Batal</button>
@@ -273,6 +290,7 @@ export default function JadwalPage() {
                   <th className="p-4 text-center font-semibold">Tanggal</th>
                   <th className="p-4 text-center font-semibold">Jam</th>
                   <th className="p-4 text-center font-semibold">Armada</th>
+                  <th className="p-4 text-center font-semibold">Status</th>
                   <th className="p-4 text-center font-semibold">Aksi</th>
                 </tr>
               </thead>
@@ -284,6 +302,17 @@ export default function JadwalPage() {
                     <td className="p-4 text-center text-gray-800 border-r border-gray-300">{formatTanggal(item.tanggal)}</td>
                     <td className="p-4 text-center text-gray-800 border-r border-gray-300">{item.jam ? item.jam.substring(0, 5) : '-'}</td>
                     <td className="p-4 text-center text-gray-800 border-r border-gray-300">{item.armada}</td>
+                    <td className="p-4 text-center border-r border-gray-300">
+                      <span className={`px-2 py-1 rounded text-xs font-semibold text-white ${
+                        item.status_jadwal === 'terjadwal'   ? 'bg-blue-500'   :
+                        item.status_jadwal === 'berlangsung' ? 'bg-purple-400' :
+                        item.status_jadwal === 'selesai'     ? 'bg-green-500'  :
+                        item.status_jadwal === 'dibatalkan'  ? 'bg-red-500'    :
+                        item.status_jadwal === 'ditunda'     ? 'bg-orange-400' : 'bg-gray-400'
+                      }`}>
+                        {item.status_jadwal || '-'}
+                      </span>
+                    </td>
                     <td className="p-4">
                       <div className="flex justify-center gap-2">
                         <button onClick={() => handleEdit(item)} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition" title="Edit">

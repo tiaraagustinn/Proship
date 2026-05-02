@@ -1,27 +1,32 @@
 import express from 'express';
-import axios from 'axios';
+import { fetchAndCache, getCached } from '../services/bmkgCacheService.js';
 
 const router = express.Router();
 
-// Endpoint untuk Perairan Sabang - Banda Aceh
 router.get('/sabang-bandaAceh', async (req, res) => {
-  try {
-    console.log('📍 Fetching sabang-bandaAceh data from BMKG...');
-    
-    const response = await axios.get(
-      'https://peta-maritim.bmkg.go.id/public_api/perairan/A.03_Perairan%20Sabang%20-%20Banda%20Aceh.json'
-    );
-    
-    console.log('✅ sabang-bandaAceh data received');
-    res.json(response.data);
-    
-  } catch (error) {
-    console.error('❌ Error sabang-bandaAceh:', error.message);
-    res.status(500).json({ 
-      error: 'Gagal mengambil data sabang-bandaAceh',
-      details: error.message 
+  // Coba ambil langsung dari BMKG (sekaligus update cache jika berhasil)
+  const fresh = await fetchAndCache('sabang-bandaAceh');
+  if (fresh) {
+    return res.json(fresh);
+  }
+
+  // BMKG tidak bisa diakses — sajikan dari cache DB
+  const cached = await getCached('sabang-bandaAceh');
+  if (cached) {
+    const age = Math.round((Date.now() - new Date(cached.fetched_at).getTime()) / 60000);
+    console.log(`📦 Serving BMKG cache (${age} menit lalu)`);
+    const parsedData = typeof cached.data === 'string' ? JSON.parse(cached.data) : cached.data;
+    return res.json({
+      ...parsedData,
+      _from_cache: true,
+      _cached_at: cached.fetched_at,
     });
   }
+
+  // Tidak ada sama sekali
+  return res.status(503).json({
+    error: 'Data BMKG tidak tersedia dan belum ada cache',
+  });
 });
 
 export default router;

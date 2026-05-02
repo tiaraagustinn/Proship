@@ -12,6 +12,9 @@ import authRoutes from './src/routes/authRoutes.js';
 import kapalRoutes from './src/routes/kapalRoutes.js';
 import pelabuhanRoutes from './src/routes/pelabuhanRoutes.js';
 import ruteRoutes from './src/routes/ruteRoutes.js';
+import historisRoutes from './src/routes/historisRoutes.js';
+import cron from 'node-cron';
+import { refreshAll } from './src/services/bmkgCacheService.js';
 
 
 const app = express();
@@ -79,6 +82,12 @@ app.post('/api/petugas', (req, res) => {
   if (!username || !nama || !email || !role || !password) {
     return res.status(400).json({ message: 'Semua field harus diisi' });
   }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ message: 'Format email tidak valid' });
+  }
+  if (password.length < 8) {
+    return res.status(400).json({ message: 'Password minimal 8 karakter' });
+  }
   
   const checkSql = `SELECT id_petugas FROM petugas WHERE username = ?`;
   db.query(checkSql, [username], (err, results) => {
@@ -90,10 +99,11 @@ app.post('/api/petugas', (req, res) => {
       return res.status(400).json({ message: 'Username sudah digunakan' });
     }
     
-    // Generate ID based on count
-    const idSql = `SELECT COUNT(*) as count FROM petugas`;
+    // Generate ID based on max existing number
+    const idSql = `SELECT MAX(CAST(SUBSTRING(id_petugas, 4) AS UNSIGNED)) as maxNum FROM petugas`;
     db.query(idSql, (err, idResults) => {
-      const newId = 'PTG' + String(idResults[0].count + 1).padStart(3, '0');
+      const maxNum = idResults[0].maxNum || 0;
+      const newId = 'PTG' + String(maxNum + 1).padStart(3, '0');
       const insertSql = `INSERT INTO petugas (id_petugas, username, nama, email, role, password, status) VALUES (?, ?, ?, ?, ?, ?, 'aktif')`;
       db.query(insertSql, [newId, username, nama, email, role, password], (err, result) => {
         if (err) {
@@ -132,17 +142,31 @@ app.put('/api/petugas/:id', (req, res) => {
 
 app.delete('/api/petugas/:id', (req, res) => {
   const { id } = req.params;
-  const sql = `DELETE FROM petugas WHERE id_petugas = ?`;
-  db.query(sql, [id], (err, result) => {
-    if (err) {
-      console.error('SQL ERROR:', err);
-      return res.status(500).json({ error: 'Gagal menghapus petugas', message: err.message });
+  // Cek apakah akun ini admin dan satu-satunya admin
+  db.query(
+    `SELECT role FROM petugas WHERE id_petugas = ?`, [id],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: 'Gagal memeriksa data', message: err.message });
+      if (rows.length === 0) return res.status(404).json({ error: 'Petugas tidak ditemukan' });
+      if (rows[0].role === 'admin') {
+        db.query(`SELECT COUNT(*) as total FROM petugas WHERE role = 'admin'`, (err2, countRows) => {
+          if (err2) return res.status(500).json({ error: 'Gagal memeriksa data', message: err2.message });
+          if (countRows[0].total <= 1) {
+            return res.status(403).json({ error: 'Admin utama tidak dapat dihapus. Harus ada minimal satu admin.' });
+          }
+          db.query(`DELETE FROM petugas WHERE id_petugas = ?`, [id], (err3, result) => {
+            if (err3) return res.status(500).json({ error: 'Gagal menghapus petugas', message: err3.message });
+            res.status(200).json({ success: true, message: 'Petugas berhasil dihapus' });
+          });
+        });
+      } else {
+        db.query(`DELETE FROM petugas WHERE id_petugas = ?`, [id], (err2, result) => {
+          if (err2) return res.status(500).json({ error: 'Gagal menghapus petugas', message: err2.message });
+          res.status(200).json({ success: true, message: 'Petugas berhasil dihapus' });
+        });
+      }
     }
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'Petugas tidak ditemukan' });
-    }
-    res.status(200).json({ success: true, message: 'Petugas berhasil dihapus' });
-  });
+  );
 });
 
 // ✅ Petugas routes - OLD (commented out due to routing issues)
@@ -160,6 +184,7 @@ app.use('/api/jadwal', jadwalRoutes);
 app.use('/api/kapal', kapalRoutes);
 app.use('/api/pelabuhan', pelabuhanRoutes);
 app.use('/api/rute', ruteRoutes);
+app.use('/api/historis', historisRoutes);
 
 // ✅ 404 Handler
 app.use((req, res) => {
@@ -175,4 +200,13 @@ app.use((err, req, res, next) => {
 // ✅ Jalankan server
 app.listen(PORT, () => {
   console.log(`✅ Server backend berjalan di http://localhost:${PORT}`);
+
+  // Fetch BMKG saat server pertama kali nyala
+  refreshAll();
+
+  // Refresh otomatis setiap 6 jam: "0 */6 * * *"
+  cron.schedule('0 */6 * * *', () => {
+    console.log('🔄 Cron: refresh BMKG cache...');
+    refreshAll();
+  });
 });

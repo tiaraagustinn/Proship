@@ -29,11 +29,11 @@ const HeroSection = () => {
 
          {/* Gambar di atas background
          <section className="relative bg-cover min-h-[500px] flex items-center left-10 w-200 h-auto" style={{ backgroundImage: "url('/images/ship-bg.png')" }}>
-         
+
          </section> */}
         <img src="/images/ship-bg2.png" alt="kapal" className="absolute left-195 w-160 h-auto"/>
         <img src="/images/ship.png" alt="kapal" className="absolute top-9 right-0 left-210 w-141 h-auto"/>
-        
+
         </div>
       </div>
     </section>

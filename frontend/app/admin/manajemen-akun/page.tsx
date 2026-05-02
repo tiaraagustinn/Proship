@@ -34,6 +34,8 @@ export default function ManajemenAkunPage() {
   });
 
   const [akunData, setAkunData] = useState<AkunPetugas[]>([]);
+  const [formErrors, setFormErrors] = useState<{ email?: string; password?: string }>({});
+  const currentUserId = typeof window !== 'undefined' ? sessionStorage.getItem('userId') : null;
 
   useEffect(() => {
     setTitle('Manajemen Akun');
@@ -72,14 +74,8 @@ export default function ManajemenAkunPage() {
   };
 
   const handleAddAkun = () => {
-    setFormData({
-      username: '',
-      nama: '',
-      email: '',
-      role: 'petugas',
-      password: '',
-      status: 'aktif',
-    });
+    setFormData({ username: '', nama: '', email: '', role: 'petugas', password: '', status: 'aktif' });
+    setFormErrors({});
     setShowAddModal(true);
   };
 
@@ -130,11 +126,18 @@ export default function ManajemenAkunPage() {
     });
   };
 
+  const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
   const handleSubmit = async () => {
+    const errors: { email?: string; password?: string } = {};
     if (!formData.username || !formData.nama || !formData.email || !formData.password || !formData.role) {
       showNotification('error', 'Semua field harus diisi');
       return;
     }
+    if (!isValidEmail(formData.email)) errors.email = 'Format email tidak valid';
+    if (formData.password.length < 8) errors.password = 'Password minimal 8 karakter';
+    setFormErrors(errors);
+    if (Object.keys(errors).length > 0) return;
 
     try {
       const response = await fetch(`${API_URL}/petugas`, {
@@ -173,9 +176,20 @@ export default function ManajemenAkunPage() {
     }
   };
 
+  const isLastAdmin = (id: number) => {
+    const adminCount = akunData.filter(a => a.role === 'admin').length;
+    const target = akunData.find(a => a.id_petugas === id);
+    return target?.role === 'admin' && adminCount <= 1;
+  };
+
   const handleUpdate = async () => {
     if (selectedId == null || !formData.username || !formData.nama || !formData.email || !formData.role) {
       showNotification('error', 'Semua field harus diisi');
+      return;
+    }
+
+    if (isLastAdmin(selectedId) && formData.role !== 'admin') {
+      showNotification('error', 'Role admin utama tidak dapat diubah');
       return;
     }
 
@@ -310,22 +324,39 @@ export default function ManajemenAkunPage() {
                     </span>
                   </td>
                   <td className="p-4">
-                    <div className="flex justify-center gap-2">
-                      <button
-                        onClick={() => handleEdit(item.id_petugas)}
-                        className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
-                        title="Edit"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(item.id_petugas)}
-                        className="p-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
-                        title="Hapus"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                    {(() => {
+                      const isSelf = String(item.id_petugas) === String(currentUserId);
+                      const adminCount = akunData.filter(a => a.role === 'admin').length;
+                      const isLastAdmin = item.role === 'admin' && adminCount <= 1;
+                      const isProtected = isSelf || isLastAdmin;
+                      return (
+                        <div className="flex justify-center gap-2">
+                          <button
+                            onClick={() => handleEdit(item.id_petugas)}
+                            className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+                            title="Edit"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          {isProtected ? (
+                            <span
+                              className="p-2 bg-gray-300 text-gray-400 rounded cursor-not-allowed"
+                              title={isSelf ? 'Tidak dapat menghapus akun sendiri' : 'Admin utama tidak dapat dihapus'}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => handleDelete(item.id_petugas)}
+                              className="p-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
+                              title="Hapus"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </td>
                 </tr>
               ))}
@@ -370,18 +401,20 @@ export default function ManajemenAkunPage() {
               name="email"
               placeholder="Email"
               value={formData.email}
-              onChange={handleChange}
-              className="w-full mb-3 p-2 border rounded"
+              onChange={e => { handleChange(e); setFormErrors(prev => ({ ...prev, email: undefined })); }}
+              className={`w-full p-2 border rounded ${formErrors.email ? 'border-red-500 mb-1' : 'mb-3'}`}
             />
+            {formErrors.email && <p className="text-red-500 text-xs mb-3">{formErrors.email}</p>}
 
             <input
               type="password"
               name="password"
-              placeholder="Password"
+              placeholder="Password (min. 8 karakter)"
               value={formData.password}
-              onChange={handleChange}
-              className="w-full mb-3 p-2 border rounded"
+              onChange={e => { handleChange(e); setFormErrors(prev => ({ ...prev, password: undefined })); }}
+              className={`w-full p-2 border rounded ${formErrors.password ? 'border-red-500 mb-1' : 'mb-3'}`}
             />
+            {formErrors.password && <p className="text-red-500 text-xs mb-3">{formErrors.password}</p>}
 
             <select
               name="role"
@@ -444,15 +477,22 @@ export default function ManajemenAkunPage() {
               className="w-full mb-3 p-2 border rounded"
             />
 
-            <select
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              className="w-full mb-3 p-2 border rounded"
-            >
-              <option value="petugas">Petugas</option>
-              <option value="admin">Admin</option>
-            </select>
+            {selectedId !== null && isLastAdmin(selectedId) ? (
+              <div className="w-full mb-3 p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed flex justify-between items-center">
+                <span>Admin</span>
+                <span className="text-xs text-gray-400">🔒 Tidak dapat diubah</span>
+              </div>
+            ) : (
+              <select
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                className="w-full mb-3 p-2 border rounded"
+              >
+                <option value="petugas">Petugas</option>
+                <option value="admin">Admin</option>
+              </select>
+            )}
 
             <select
               name="status"

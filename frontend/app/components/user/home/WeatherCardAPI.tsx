@@ -1,10 +1,8 @@
-// components/WeatherCardAPI.tsx
-
-"use client";
+'use client';
 
 import React from 'react';
 import { useWeather } from '@/lib/hooks/useWeather';
-import WeatherCard from './WeatherCard'; // Import WeatherCard yang sudah ada
+import WeatherCard from './WeatherCard';
 
 interface WeatherCardAPIProps {
   pelabuhan: 'balohan' | 'ulee-lheue';
@@ -13,141 +11,68 @@ interface WeatherCardAPIProps {
   backgroundImage?: string;
 }
 
-export const WeatherCardAPI: React.FC<WeatherCardAPIProps> = ({ 
-  pelabuhan, 
-  location, 
+function getWeatherIcon(desc: string): string {
+  const d = desc.toLowerCase();
+  if (d.includes('petir'))   return '⛈️';
+  if (d.includes('hujan'))   return '🌧️';
+  if (d.includes('kabut'))   return '🌫️';
+  if (d.includes('berawan')) return '⛅';
+  if (d.includes('cerah'))   return '☀️';
+  return '🌤️';
+}
+
+const Skeleton = ({ location }: { location: string }) => (
+  <div className="relative rounded-2xl overflow-hidden shadow-lg bg-gradient-to-br from-blue-600 to-cyan-500 min-h-[220px] flex flex-col justify-between p-5 animate-pulse">
+    <div>
+      <div className="h-3 w-24 bg-white/30 rounded mb-2" />
+      <div className="h-4 w-32 bg-white/20 rounded" />
+    </div>
+    <div className="flex items-center justify-between">
+      <div>
+        <div className="h-14 w-24 bg-white/30 rounded mb-2" />
+        <div className="h-3 w-20 bg-white/20 rounded" />
+      </div>
+      <div className="w-20 h-20 rounded-full bg-white/20" />
+    </div>
+    <div className="flex gap-4 border-t border-white/20 pt-3">
+      <div className="h-3 w-16 bg-white/20 rounded" />
+      <div className="h-3 w-20 bg-white/20 rounded" />
+    </div>
+    <p className="absolute inset-0 flex items-center justify-center text-white/60 text-sm">
+      Memuat {location}...
+    </p>
+  </div>
+);
+
+const ErrorCard = ({ location }: { location: string }) => (
+  <div className="relative rounded-2xl overflow-hidden shadow-lg bg-gradient-to-br from-slate-600 to-slate-700 min-h-[220px] flex flex-col items-center justify-center p-5 text-white text-center">
+    <span className="text-4xl mb-3">🌐</span>
+    <p className="font-semibold text-sm">{location}</p>
+    <p className="text-xs text-white/60 mt-1">Data cuaca tidak tersedia</p>
+  </div>
+);
+
+export const WeatherCardAPI: React.FC<WeatherCardAPIProps> = ({
+  pelabuhan,
+  location,
   city,
-  backgroundImage 
+  backgroundImage,
 }) => {
   const { data, loading, error } = useWeather(pelabuhan);
 
-  // Loading state
-  if (loading) {
-    return (
-      <div className="bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-lg p-8">
-        <div className="flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
-          <span className="ml-4">Memuat data {location}...</span>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <Skeleton location={location} />;
+  if (error)   return <ErrorCard location={location} />;
 
-  // Error state
-  if (error) {
-    return (
-      <div className="bg-gradient-to-br from-red-500 to-red-700 text-white rounded-lg p-8">
-        <div className="text-center">
-          <p className="text-xl font-bold mb-2">⚠️ Error</p>
-          <p className="text-sm">Gagal memuat data {location}</p>
-          <p className="text-xs mt-2 opacity-75">{error}</p>
-        </div>
-      </div>
-    );
-  }
+  const lokasi       = data?.lokasi;
+  const cuacaArray   = data?.data?.[0]?.cuaca ?? [];
+  const dataSekarang = Array.isArray(cuacaArray[0]) ? cuacaArray[0][0] : cuacaArray[0];
 
-  // No data
-  if (!data || !data.data || data.data.length === 0) {
-    return (
-      <div className="bg-gradient-to-br from-gray-500 to-gray-700 text-white rounded-lg p-8">
-        <div className="text-center">
-          <p className="text-xl font-bold mb-2">📭 Data Tidak Tersedia</p>
-          <p className="text-sm">Tidak ada data cuaca untuk {location}</p>
-        </div>
-      </div>
-    );
-  }
+  if (!dataSekarang) return <ErrorCard location={location} />;
 
-  // Extract data - BMKG structure: data[0].cuaca[0][0]
-  const lokasi = data.lokasi;
-  const dataWrapper = data.data[0];
-  
-  console.log('🔍 DEBUG WeatherCardAPI:', pelabuhan);
-  console.log('📦 Full data:', data);
-  console.log('📦 dataWrapper:', dataWrapper);
-  
-  // Data cuaca ada di dalam array "cuaca"
-  const cuacaArray = dataWrapper?.cuaca || [];
-  console.log('📦 cuacaArray:', cuacaArray);
-  console.log('📦 cuacaArray[0]:', cuacaArray[0]);
-  
-  // BMKG structure is nested array: cuaca[0][0]
-  let dataSekarang = null;
-  
-  // Coba akses nested array
-  if (Array.isArray(cuacaArray) && cuacaArray.length > 0) {
-    if (Array.isArray(cuacaArray[0]) && cuacaArray[0].length > 0) {
-      // Struktur: cuaca[0][0] (nested array)
-      dataSekarang = cuacaArray[0][0];
-      console.log('✅ Using nested array: cuaca[0][0]');
-    } else {
-      // Struktur: cuaca[0] (direct object)
-      dataSekarang = cuacaArray[0];
-      console.log('✅ Using direct object: cuaca[0]');
-    }
-  }
-  
-  console.log('📦 dataSekarang:', dataSekarang);
-  console.log('📦 dataSekarang type:', typeof dataSekarang);
-  console.log('📦 dataSekarang keys:', dataSekarang ? Object.keys(dataSekarang) : 'null');
-
-  // Kalau tidak ada data cuaca
-  if (!dataSekarang) {
-    return (
-      <div className="bg-gradient-to-br from-gray-500 to-gray-700 text-white rounded-lg p-8">
-        <div className="text-center">
-          <p className="text-xl font-bold mb-2">📭 Data Cuaca Kosong</p>
-          <p className="text-sm">Tidak ada prakiraan cuaca untuk {location}</p>
-          <pre className="text-xs mt-4 bg-black/30 p-2 rounded overflow-auto max-h-48">
-            {JSON.stringify(data, null, 2)}
-          </pre>
-        </div>
-      </div>
-    );
-  }
-
-  // Extract values dengan fallback
-  const temperature = dataSekarang?.t ?? dataSekarang?.temp ?? 0;
-  const windSpeed = dataSekarang?.ws ?? dataSekarang?.wind_speed ?? 0;
-  const humidity = dataSekarang?.hu ?? dataSekarang?.humidity ?? 0;
-  const condition = dataSekarang?.weather_desc ?? dataSekarang?.weather ?? 'Tidak Diketahui';
-  const localDateTime = dataSekarang?.local_datetime ?? dataSekarang?.datetime ?? dataSekarang?.utc_datetime ?? new Date().toISOString();
-  
-  console.log('✅ Extracted values:', {
-    temperature,
-    windSpeed,
-    humidity,
-    condition,
-    localDateTime
-  });
-  console.log('✅ dataSekarang.t:', dataSekarang.t);
-  console.log('✅ dataSekarang.ws:', dataSekarang.ws);
-  console.log('✅ dataSekarang.hu:', dataSekarang.hu);
-
-  // Format waktu
-  const formatTime = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return 'Waktu tidak valid';
-      return date.toLocaleTimeString('id-ID', {
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch {
-      return 'Waktu tidak valid';
-    }
-  };
-
-  // Tentukan weather icon berdasarkan kondisi
-  const getWeatherIcon = (weatherDesc: string): string => {
-    const desc = weatherDesc.toLowerCase();
-    if (desc.includes('cerah')) return '☀️';
-    if (desc.includes('berawan')) return '⛅';
-    if (desc.includes('hujan')) return '🌧️';
-    if (desc.includes('petir')) return '⛈️';
-    if (desc.includes('kabut')) return '🌫️';
-    return '🌤️';
-  };
+  const temperature = dataSekarang?.t       ?? dataSekarang?.temp        ?? 0;
+  const windSpeed   = dataSekarang?.ws      ?? dataSekarang?.wind_speed   ?? 0;
+  const humidity    = dataSekarang?.hu      ?? dataSekarang?.humidity     ?? 0;
+  const condition   = dataSekarang?.weather_desc ?? dataSekarang?.weather ?? '—';
 
   return (
     <WeatherCard
@@ -156,10 +81,7 @@ export const WeatherCardAPI: React.FC<WeatherCardAPIProps> = ({
       temperature={temperature}
       windSpeed={windSpeed}
       humidity={humidity}
-      time={new Date().toLocaleTimeString('id-ID', {
-        hour: '2-digit',
-        minute: '2-digit'
-    })}
+      time={new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
       condition={condition}
       weatherIcon={getWeatherIcon(condition)}
       backgroundImage={backgroundImage}

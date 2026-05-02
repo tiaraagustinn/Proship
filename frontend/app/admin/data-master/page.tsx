@@ -561,10 +561,7 @@ export default function DataMasterPage() {
             {activeTab === 'kapal' && (
               <>
                 <input type="text" name="nama_kapal" placeholder="Nama Kapal" value={kapalFormData.nama_kapal} onChange={handleKapalInputChange} className="w-full mb-3 p-2 border rounded" />
-                <select name="tipe_kapal" value={kapalFormData.tipe_kapal} onChange={handleKapalInputChange} className="w-full mb-3 p-2 border rounded">
-                  <option value="ferry">Ferry</option>
-                  <option value="cepat">Cepat</option>
-                </select>
+                <input type="text" value="Ferry" disabled className="w-full mb-3 p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed" />
                 <input type="number" name="kapasitas_muatan" placeholder="Kapasitas Muatan" value={kapalFormData.kapasitas_muatan} onChange={handleKapalInputChange} className="w-full mb-3 p-2 border rounded" step="0.01" />
                 <input type="number" name="kapasitas_kend_r2" placeholder="Kap. Kend R2" value={kapalFormData.kapasitas_kend_r2} onChange={handleKapalInputChange} className="w-full mb-3 p-2 border rounded" />
                 <input type="number" name="kapasitas_kend_r4" placeholder="Kap. Kend R4" value={kapalFormData.kapasitas_kend_r4} onChange={handleKapalInputChange} className="w-full mb-3 p-2 border rounded" />
@@ -604,10 +601,7 @@ export default function DataMasterPage() {
             {activeTab === 'kapal' && (
               <>
                 <input type="text" name="nama_kapal" placeholder="Nama Kapal" value={editFormData.nama_kapal} onChange={handleEditInputChange} className="w-full mb-3 p-2 border rounded" />
-                <select name="tipe_kapal" value={editFormData.tipe_kapal} onChange={handleEditInputChange} className="w-full mb-3 p-2 border rounded">
-                  <option value="ferry">Ferry</option>
-                  <option value="cepat">Cepat</option>
-                </select>
+                <input type="text" value="Ferry" disabled className="w-full mb-3 p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed" />
                 <input type="number" name="kapasitas_muatan" placeholder="Kapasitas Muatan" value={editFormData.kapasitas_muatan} onChange={handleEditInputChange} className="w-full mb-3 p-2 border rounded" step="0.01" />
                 <input type="number" name="kapasitas_kend_r2" placeholder="Kap. Kend R2" value={editFormData.kapasitas_kend_r2} onChange={handleEditInputChange} className="w-full mb-3 p-2 border rounded" />
                 <input type="number" name="kapasitas_kend_r4" placeholder="Kap. Kend R4" value={editFormData.kapasitas_kend_r4} onChange={handleEditInputChange} className="w-full mb-3 p-2 border rounded" />

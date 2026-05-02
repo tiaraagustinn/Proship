@@ -3,56 +3,49 @@ import { getAllJadwal, createJadwal, updateJadwal, deleteJadwal } from '../servi
 export const getJadwal = async (req, res) => {
   try {
     const { tanggal } = req.query;
-    const data = await getAllJadwal(tanggal);
+    const data = await getAllJadwal(tanggal ?? null);
     res.json(data);
   } catch (error) {
-    console.error("JADWAL ERROR:", error);
-    res.status(500).json({
-      error: "Gagal ambil data",
-      message: error.message,
-      sqlError: error.sql || null
-    });
+    console.error('JADWAL ERROR:', error);
+    res.status(500).json({ error: 'Gagal ambil data jadwal', message: error.message });
   }
 };
 
+function extractIdPetugas(req) {
+  const token = req.headers['authorization']?.split(' ')[1] || '';
+  // token format: token_PTG001_timestamp
+  const parts = token.split('_');
+  return parts.length >= 2 ? parts[1] : null;
+}
+
 export const postJadwal = async (req, res) => {
   try {
-    const { id_rute, id_kapal, tanggal, jam } = req.body;
-
+    const { id_rute, id_kapal, tanggal, jam, status_jadwal } = req.body;
     if (!id_rute || !id_kapal || !tanggal || !jam) {
       return res.status(400).json({ message: 'id_rute, id_kapal, tanggal, dan jam harus diisi' });
     }
-
-    const waktu_berangkat = `${tanggal} ${jam}:00`;
-    const insertId = await createJadwal(id_rute, id_kapal, waktu_berangkat);
-
+    const id_petugas = extractIdPetugas(req);
+    const insertId = await createJadwal(id_rute, id_kapal, tanggal, jam, id_petugas, status_jadwal);
     res.status(201).json({ success: true, message: 'Jadwal berhasil ditambahkan', id: insertId });
   } catch (error) {
-    console.error("JADWAL CREATE ERROR:", error);
-    res.status(500).json({ error: "Gagal tambah jadwal", message: error.message });
+    console.error('JADWAL CREATE ERROR:', error);
+    res.status(500).json({ error: 'Gagal tambah jadwal', message: error.message });
   }
 };
 
 export const putJadwal = async (req, res) => {
   try {
     const { id } = req.params;
-    const { id_rute, id_kapal, tanggal, jam } = req.body;
-
+    const { id_rute, id_kapal, tanggal, jam, status_jadwal } = req.body;
     if (!id_rute || !id_kapal || !tanggal || !jam) {
       return res.status(400).json({ message: 'id_rute, id_kapal, tanggal, dan jam harus diisi' });
     }
-
-    const waktu_berangkat = `${tanggal} ${jam}:00`;
-    const affected = await updateJadwal(id, id_rute, id_kapal, waktu_berangkat);
-
-    if (affected === 0) {
-      return res.status(404).json({ error: 'Jadwal tidak ditemukan' });
-    }
-
+    const affected = await updateJadwal(id, id_rute, id_kapal, tanggal, jam, status_jadwal);
+    if (affected === 0) return res.status(404).json({ error: 'Jadwal tidak ditemukan' });
     res.status(200).json({ success: true, message: 'Jadwal berhasil diupdate' });
   } catch (error) {
-    console.error("JADWAL UPDATE ERROR:", error);
-    res.status(500).json({ error: "Gagal update jadwal", message: error.message });
+    console.error('JADWAL UPDATE ERROR:', error);
+    res.status(500).json({ error: 'Gagal update jadwal', message: error.message });
   }
 };
 
@@ -60,14 +53,13 @@ export const removeJadwal = async (req, res) => {
   try {
     const { id } = req.params;
     const affected = await deleteJadwal(id);
-
-    if (affected === 0) {
-      return res.status(404).json({ error: 'Jadwal tidak ditemukan' });
-    }
-
+    if (affected === 0) return res.status(404).json({ error: 'Jadwal tidak ditemukan' });
     res.status(200).json({ success: true, message: 'Jadwal berhasil dihapus' });
   } catch (error) {
-    console.error("JADWAL DELETE ERROR:", error);
-    res.status(500).json({ error: "Gagal hapus jadwal", message: error.message });
+    if (error.code === 'ER_ROW_IS_REFERENCED_2') {
+      return res.status(409).json({ error: 'Jadwal tidak dapat dihapus karena sudah memiliki data historis angkutan.' });
+    }
+    console.error('JADWAL DELETE ERROR:', error);
+    res.status(500).json({ error: 'Gagal hapus jadwal', message: error.message });
   }
 };

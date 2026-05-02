@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mysql -u root -e \"USE db_proship; SHOW CREATE TABLE historis_angkutan\\\\G\")",
+      "Bash(mysql *)",
+      "Bash(npm install *)",
+      "Bash(xargs grep *)",
+      "Bash(curl -s \"http://localhost:5000/api/jadwal?tanggal=2026-04-18\")",
+      "Bash(curl *)",
+      "Bash(node *)",
+      "Bash(rm \"E:/College/TUGAS AKHIR/project/real - Copy - Copy/proship/backend/src/services/aisService.js\")",
+      "Bash(rm \"E:/College/TUGAS AKHIR/project/real - Copy - Copy/proship/backend/src/routes/aisRoutes.js\")",
+      "Bash(npm uninstall *)"
+    ]
+  }
+}

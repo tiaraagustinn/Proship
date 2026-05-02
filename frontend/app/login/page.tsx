@@ -2,7 +2,9 @@
 
 import { useState, FormEvent, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { Globe, User, Lock } from 'lucide-react';
+import { User, Lock, Mail } from 'lucide-react';
+
+const ADMIN_EMAIL = 'admin@dishub-aceh.go.id';
 
 interface LoginData {
   username: string;
@@ -16,7 +18,9 @@ export default function PetugasLoginPage() {
     password: ''
   });
   const [error, setError] = useState<string>('');
+  const [isInactive, setIsInactive] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [showForgot, setShowForgot] = useState(false);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -25,6 +29,7 @@ export default function PetugasLoginPage() {
       [name]: value
     }));
     setError('');
+    setIsInactive(false);
   };
 
   const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
@@ -47,25 +52,39 @@ export default function PetugasLoginPage() {
         body: JSON.stringify(loginData),
       });
 
+      if (response.status === 403) {
+        const errorData = await response.json();
+        setIsInactive(true);
+        setError('');
+        setIsLoading(false);
+        return;
+      }
+
       if (response.ok) {
         const data = await response.json();
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('userName', data.userName || loginData.username);
-        router.push('/petugas/dashboard');
+        sessionStorage.setItem('token', data.token);
+        sessionStorage.setItem('userId', data.userId);
+        sessionStorage.setItem('userName', data.userName || loginData.username);
+        sessionStorage.setItem('username', data.username);
+        sessionStorage.setItem('role', data.role);
+        sessionStorage.setItem('email', data.email);
+        
+        // Redirect berdasarkan role
+        if (data.role === 'admin') {
+          router.push('/admin/dashboard');
+        } else if (data.role === 'petugas') {
+          router.push('/petugas/dashboard');
+        } else {
+          router.push('/user/dashboard-monitoring');
+        }
       } else {
         const errorData = await response.json();
+        setIsInactive(false);
         setError(errorData.message || 'Username atau password salah');
       }
     } catch (error) {
       console.error('Login error:', error);
-      
-      // For development: Allow login without backend
-      if (loginData.username && loginData.password) {
-        localStorage.setItem('userName', loginData.username);
-        router.push('/petugas/dashboard');
-      } else {
-        setError('Terjadi kesalahan. Silakan coba lagi.');
-      }
+      setError('Terjadi kesalahan. Silakan coba lagi.');
     } finally {
       setIsLoading(false);
     }
@@ -75,7 +94,7 @@ export default function PetugasLoginPage() {
     <section className="relative bg-cover bg-center min-h-screen flex items-center justify-center  overflow-hidden bg-blue-950">
 
       {/* Login Card */}
-      <div className="relative z-10 w-full max-w-md px-6">
+      <div className="relative z-10 w-full max-w-sm md:max-w-md px-4 md:px-6">
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <div className="relative">
@@ -124,12 +143,20 @@ export default function PetugasLoginPage() {
             </div>
           )}
 
+          {/* Akun Nonaktif */}
+          {isInactive && (
+            <div className="bg-yellow-500/20 backdrop-blur-sm border border-yellow-400 text-white px-4 py-3 rounded-lg text-sm space-y-1">
+              <p className="font-semibold">Akun Anda telah dinonaktifkan</p>
+              <p className="text-yellow-200 text-xs">Untuk pengaktifan kembali, silakan hubungi admin.</p>
+            </div>
+          )}
+
           {/* Forgot Password */}
           <div className="text-right">
-            <button 
-              type="button" 
+            <button
+              type="button"
               className="text-pink-400 hover:text-pink-300 text-sm font-bold transition-colors tracking-wide"
-              onClick={() => alert('Fitur lupa password akan segera hadir')}
+              onClick={() => setShowForgot(true)}
             >
               LUPA PASSWORD?
             </button>
@@ -152,8 +179,35 @@ export default function PetugasLoginPage() {
           </p>
         </div>
       </div>
-        <img src="/images/wave1.png" alt="wave1" className="absolute bottom-0 left-0 w-200 h-150"/>
-        <img src="/images/wave2.png" alt="wave2" className="absolute top-0 right-0 w-250 h-160"/>
+      <img src="/images/wave1.png" alt="wave1" className="absolute bottom-0 left-0 w-1/2 md:w-2/5 h-auto opacity-80"/>
+      <img src="/images/wave2.png" alt="wave2" className="absolute top-0 right-0 w-1/2 md:w-2/5 h-auto opacity-80"/>
+
+      {/* Forgot Password Modal */}
+      {showForgot && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center">
+            <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Mail className="w-7 h-7 text-blue-900" />
+            </div>
+            <h2 className="text-xl font-bold text-blue-900 mb-2">Lupa Password?</h2>
+            <p className="text-gray-500 text-sm mb-4">
+              Untuk reset password, silakan hubungi admin melalui email berikut:
+            </p>
+            <a
+              href={`mailto:${ADMIN_EMAIL}`}
+              className="inline-block bg-blue-50 border border-blue-200 text-blue-900 font-semibold px-4 py-2 rounded-lg text-sm hover:bg-blue-100 transition mb-6"
+            >
+              {ADMIN_EMAIL}
+            </a>
+            <button
+              onClick={() => setShowForgot(false)}
+              className="w-full py-3 bg-blue-900 text-white rounded-lg hover:bg-blue-800 transition font-medium"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

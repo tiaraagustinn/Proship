@@ -1,175 +1,184 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import Link from 'next/link';
+import React, { useState, useEffect, useMemo } from "react";
+import Link from "next/link";
 
-interface ScheduleData {
-  departure: string;
-  arrival: string;
-  time: string;
-  fleet: string;
-  safetyLevel: 'Aman' | 'Waspada' | 'Bahaya';
+const HARI  = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
+const BULAN = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+
+function generateDates() {
+  const today = new Date();
+  return Array.from({ length: 3 }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    const y   = d.getFullYear();
+    const m   = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return {
+      hari:  HARI[d.getDay()],
+      label: `${d.getDate()} ${BULAN[d.getMonth()]}`,
+      value: `${y}-${m}-${day}`,
+      isToday: i === 0,
+    };
+  });
 }
 
-const ScheduleTable = () => {
-  const [selectedDate, setSelectedDate] = useState(0);
+function safetyStyle(level: string) {
+  switch (level) {
+    case 'AMAN':    return 'bg-emerald-100 text-emerald-700 border border-emerald-300';
+    case 'WASPADA': return 'bg-amber-100 text-amber-700 border border-amber-300';
+    case 'BAHAYA':  return 'bg-red-100 text-red-700 border border-red-300';
+    default:        return 'bg-gray-100 text-gray-500 border border-gray-200';
+  }
+}
 
-  const dates = [
-    { day: 'Rabu', date: '10 September 2025' },
-    { day: 'Kamis', date: '11 September 2025' },
-    { day: 'Jumat', date: '12 September 2025' }
-  ];
+function safetyDot(level: string) {
+  switch (level) {
+    case 'AMAN':    return 'bg-emerald-500';
+    case 'WASPADA': return 'bg-amber-500';
+    case 'BAHAYA':  return 'bg-red-500';
+    default:        return 'bg-gray-400';
+  }
+}
 
-  const scheduleData: ScheduleData[] = [
-    {
-      departure: 'Banda Aceh',
-      arrival: 'Sabang',
-      time: '08.00',
-      fleet: 'KMP. BRR',
-      safetyLevel: 'Aman'
-    },
-    {
-      departure: 'Sabang',
-      arrival: 'Banda Aceh',
-      time: '08.00',
-      fleet: 'KMP. Aceh Hebat',
-      safetyLevel: 'Waspada'
-    },
-    {
-      departure: 'Banda Aceh',
-      arrival: 'Sabang',
-      time: '11.00',
-      fleet: 'KMP. Aceh Hebat',
-      safetyLevel: 'Bahaya'
-    },
-    {
-      departure: 'Sabang',
-      arrival: 'Banda Aceh',
-      time: '11.00',
-      fleet: 'KMP. BRR',
-      safetyLevel: 'Waspada'
-    },
-    {
-      departure: 'Banda Aceh',
-      arrival: 'Sabang',
-      time: '14.00',
-      fleet: 'KMP. Aceh Hebat',
-      safetyLevel: 'Aman'
-    },
-    {
-      departure: 'Sabang',
-      arrival: 'Banda Aceh',
-      time: '14.00',
-      fleet: 'KMP. BRR',
-      safetyLevel: 'Aman'
-    },
-    {
-      departure: 'Banda Aceh',
-      arrival: 'Sabang',
-      time: '17.00',
-      fleet: 'KMP. Aceh Hebat',
-      safetyLevel: 'Waspada'
-    },
-    {
-      departure: 'Sabang',
-      arrival: 'Banda Aceh',
-      time: '17.00',
-      fleet: 'KMP. BRR',
-      safetyLevel: 'Waspada'
-    }
-  ];
+function normalizeLevel(raw: string | null | undefined): string {
+  if (!raw) return '—';
+  const up = raw.toUpperCase();
+  if (up.includes('AMAN'))    return 'AMAN';
+  if (up.includes('WASPADA')) return 'WASPADA';
+  if (up.includes('BAHAYA'))  return 'BAHAYA';
+  return '—';
+}
 
-  const getSafetyLevelStyle = (level: string) => {
-    switch (level) {
-      case 'Aman':
-        return 'inline-flex min-w-28 items-center justify-center rounded-xl border-2 border-green-700 bg-green-500 px-4 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-green-600';
-      case 'Waspada':
-        return 'inline-flex min-w-28 items-center justify-center rounded-xl border-2 border-yellow-700 bg-yellow-500 px-4 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-yellow-600';
-      case 'Bahaya':
-        return 'inline-flex min-w-28 items-center justify-center rounded-xl border-2 border-orange-800 bg-orange-600 px-4 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-orange-700';
-      default:
-        return 'inline-flex min-w-28 items-center justify-center rounded-xl border-2 border-gray-700 bg-gray-500 px-4 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-gray-600';
-    }
-  };
+function formatJam(jam: string) {
+  return (jam ?? '').slice(0, 5);
+}
+
+interface Schedule {
+  asal: string;
+  tujuan: string;
+  jam: string;
+  armada: string;
+  tingkat_keselamatan?: string;
+}
+
+export default function ScheduleTable() {
+  const [selectedIdx, setSelectedIdx] = useState(0);
+  const [data, setData]               = useState<Schedule[]>([]);
+  const [loading, setLoading]         = useState(true);
+
+  const dates = useMemo(() => generateDates(), []);
+
+  useEffect(() => {
+    setLoading(true);
+    setData([]);
+    const tanggal = dates[selectedIdx].value;
+    fetch(`http://localhost:5000/api/jadwal?tanggal=${tanggal}`)
+      .then(r => r.json())
+      .then(result => {
+        if (Array.isArray(result))             setData(result);
+        else if (Array.isArray(result.data))   setData(result.data);
+        else if (Array.isArray(result.jadwal)) setData(result.jadwal);
+        else setData([]);
+      })
+      .catch(() => setData([]))
+      .finally(() => setLoading(false));
+  }, [selectedIdx, dates]);
 
   return (
     <section id="jadwal" className="bg-white py-12">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="space-y-6 rounded-2xl bg-blue-100 p-10">
-          {/* Date Tabs */}
-          <div className="mx-auto w-full max-w-4xl overflow-hidden rounded-xl border border-blue-900 bg-white">
-            <div className="grid grid-cols-3">
-              {dates.map((date, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedDate(index)}
-                  className={`flex flex-col items-center justify-center gap-1 border-r border-blue-900 px-4 py-3 text-center font-semibold transition-all last:border-r-0 ${
-                    selectedDate === index
-                      ? 'bg-[#4f548c] text-white shadow-sm'
-                      : 'bg-white text-blue-800 hover:bg-[#f1f3ff] hover:text-[#13376c]'
-                  }`}
-                >
-                  <span className="text-xl leading-none">{date.day}</span>
-                  <span className="text-xs leading-none">{date.date}</span>
-                </button>
-              ))}
-            </div>
-          </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-          {/* Table */}
-          <div className="overflow-x-auto rounded-2xl border border-teal-500/40 bg-white shadow-lg">
-            <table className="min-w-[860px] w-full table-fixed border-collapse">
-              <thead className="bg-gray-600">
-                <tr>
-                  <th className="w-1/5 whitespace-nowrap border border-blue-200 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-white">
-                    Keberangkatan
-                  </th>
-                  <th className="w-1/5 whitespace-nowrap border border-blue-200 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-white">
-                    Kedatangan
-                  </th>
-                  <th className="w-1/5 whitespace-nowrap border border-blue-200 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-white">
-                    Jam
-                  </th>
-                  <th className="w-1/5 whitespace-nowrap border border-blue-200 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-white">
-                    Armada
-                  </th>
-                  <th className="w-1/5 border border-blue-200 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-white">
-                    Tingkat Keselamatan
-                  </th>
+        {/* Heading */}
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">Jadwal Pelayaran</h2>
+          <p className="text-gray-500 text-sm mt-1">Rute Ulee Lheue – Balohan (Banda Aceh ↔ Sabang)</p>
+        </div>
+
+        {/* Tabs tanggal */}
+        <div className="flex gap-2 mb-5 overflow-x-auto pb-1">
+          {dates.map((d, i) => (
+            <button
+              key={i}
+              onClick={() => setSelectedIdx(i)}
+              className={`flex-shrink-0 flex flex-col items-center px-5 py-3 rounded-xl border font-semibold transition-all text-sm ${
+                selectedIdx === i
+                  ? 'bg-blue-700 border-blue-700 text-white shadow-md'
+                  : 'bg-white border-gray-200 text-gray-600 hover:border-blue-300 hover:bg-blue-50'
+              }`}
+            >
+              <span className="text-xs font-medium opacity-80">
+                {d.isToday ? 'Hari Ini' : d.hari}
+              </span>
+              <span className="text-base font-bold mt-0.5">{d.label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Tabel */}
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-blue-700 text-white text-left">
+                  <th className="px-5 py-3.5 font-semibold whitespace-nowrap">Keberangkatan</th>
+                  <th className="px-5 py-3.5 font-semibold whitespace-nowrap">Kedatangan</th>
+                  <th className="px-5 py-3.5 font-semibold whitespace-nowrap text-center">Jam</th>
+                  <th className="px-5 py-3.5 font-semibold whitespace-nowrap">Armada</th>
+                  <th className="px-5 py-3.5 font-semibold whitespace-nowrap text-center">Tingkat Keselamatan</th>
                 </tr>
               </thead>
-              <tbody>
-                {scheduleData.map((schedule, index) => (
-                  <tr
-                    key={index}
-                    className={`${index % 2 === 0 ? 'bg-white' : 'bg-blue-50/70'} hover:bg-blue-50`}
-                  >
-                    <td className="whitespace-nowrap border border-blue-100 px-4 py-2.5 text-center text-sm font-medium text-gray-900">
-                      {schedule.departure}
-                    </td>
-                    <td className="whitespace-nowrap border border-blue-100 px-4 py-2.5 text-center text-sm font-medium text-gray-900">
-                      {schedule.arrival}
-                    </td>
-                    <td className="whitespace-nowrap border border-blue-100 px-4 py-2.5 text-center text-sm font-semibold text-gray-900">
-                      {schedule.time}
-                    </td>
-                    <td className="whitespace-nowrap border border-blue-100 px-4 py-2.5 text-center text-sm text-gray-900">
-                      {schedule.fleet}
-                    </td>
-                    <td className="border border-blue-100 px-4 py-2.5 text-center">
-                      <Link href="/user/tingkat-keselamatan" className={getSafetyLevelStyle(schedule.safetyLevel)}>
-                        {schedule.safetyLevel}
-                      </Link>
+              <tbody className="divide-y divide-gray-100">
+                {loading ? (
+                  Array.from({ length: 3 }).map((_, i) => (
+                    <tr key={i} className="animate-pulse">
+                      {Array.from({ length: 5 }).map((_, j) => (
+                        <td key={j} className="px-5 py-4">
+                          <div className="h-4 bg-gray-100 rounded w-full" />
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                ) : data.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-5 py-12 text-center">
+                      <div className="text-gray-400">
+                        <div className="text-3xl mb-2">🚢</div>
+                        <p className="font-medium text-gray-500">Tidak ada jadwal</p>
+                        <p className="text-xs mt-1 text-gray-400">Belum ada jadwal pelayaran untuk tanggal ini</p>
+                      </div>
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  data.map((row, i) => {
+                    const level = normalizeLevel(row.tingkat_keselamatan);
+                    return (
+                      <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50/60'}>
+                        <td className="px-5 py-3.5 font-medium text-gray-800">{row.asal}</td>
+                        <td className="px-5 py-3.5 text-gray-700">{row.tujuan}</td>
+                        <td className="px-5 py-3.5 text-center font-bold text-gray-900 tabular-nums">
+                          {formatJam(row.jam)}
+                        </td>
+                        <td className="px-5 py-3.5 text-gray-700">{row.armada}</td>
+                        <td className="px-5 py-3.5 text-center">
+                          <Link
+                            href="/user/tingkat-keselamatan"
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-opacity hover:opacity-80 ${safetyStyle(level)}`}
+                          >
+                            <span className={`w-1.5 h-1.5 rounded-full ${safetyDot(level)}`} />
+                            {level}
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
         </div>
+
       </div>
     </section>
   );
-};
-
-export default ScheduleTable;
+}

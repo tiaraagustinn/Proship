@@ -1,0 +1,37 @@
+
+> backend@1.0.0 dev
+> nodemon server.js
+
+[33m[nodemon] 3.1.10[39m
+[33m[nodemon] to restart at any time, enter `rs`[39m
+[33m[nodemon] watching path(s): *.*[39m
+[33m[nodemon] watching extensions: js,mjs,cjs,json[39m
+[32m[nodemon] starting `node server.js`[39m
+💾 Setting up petugas GET / handler
+💾 Setting up petugas GET /:id handler
+✅ Server backend berjalan di http://localhost:5000
+📡 Fetching BMKG [sabang-bandaAceh]...
+DB connected!
+⚠️  BMKG [sabang-bandaAceh] gagal: timeout of 10000ms exceeded
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node server.js`[39m
+file:///E:/College/TUGAS%20AKHIR/project/real%20-%20Copy%20-%20Copy/proship/backend/src/controllers/historisController.js:139
+    const bulanMap: Record<string, Record<string, number | string>> = {};
+          ^^^^^^^^
+
+SyntaxError: Missing initializer in const declaration
+    at compileSourceTextModule (node:internal/modules/esm/utils:338:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:102:18)
+    at #translate (node:internal/modules/esm/loader:437:12)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:484:27)
+
+Node.js v22.13.1
+[31m[nodemon] app crashed - waiting for file changes before starting...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node server.js`[39m
+💾 Setting up petugas GET / handler
+💾 Setting up petugas GET /:id handler
+✅ Server backend berjalan di http://localhost:5000
+📡 Fetching BMKG [sabang-bandaAceh]...
+DB connected!
+⚠️  BMKG [sabang-bandaAceh] gagal: timeout of 10000ms exceeded

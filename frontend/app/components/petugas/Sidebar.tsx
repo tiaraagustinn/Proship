@@ -8,7 +8,7 @@ import { usePageTitle } from '@/app/petugas/layout';
 export default function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
-  const { setTitle } = usePageTitle();
+  const { setTitle, sidebarOpen, setSidebarOpen } = usePageTitle();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const menuItems = [
@@ -20,19 +20,28 @@ export default function Sidebar() {
   ];
 
   const handleConfirmLogout = () => {
-    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
     sessionStorage.clear();
     setShowLogoutModal(false);
     router.push('/login');
   };
 
   const handleMenuClick = (item: typeof menuItems[0]) => {
-    setTitle(item.title); // Update title di header
+    setTitle(item.title);
+    setSidebarOpen(false);
     router.push(item.path);
   };
 
   return (
-    <aside className="w-64 bg-white shadow-lg p-6 flex flex-col min-h-screen">
+    <>
+    <aside
+      className={`
+        fixed top-0 left-0 h-screen w-64 bg-white shadow-lg p-6 flex flex-col z-40
+        transition-transform duration-300 ease-in-out
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        md:sticky md:top-0 md:translate-x-0 md:flex md:shrink-0
+      `}
+    >
       {/* Logo */}
       <div className="mb-8">
         <Image
@@ -50,7 +59,7 @@ export default function Sidebar() {
           <button
             key={item.path}
             onClick={() => handleMenuClick(item)}
-            className={`block w-full px-4 py-2.5 text-left rounded transition-colors ${
+            className={`block w-full px-4 py-2.5 text-left rounded transition-colors text-sm ${
               pathname === item.path
                 ? 'bg-black text-white font-medium'
                 : 'text-gray-700 hover:bg-gray-100'
@@ -64,36 +73,36 @@ export default function Sidebar() {
       {/* Logout Button */}
       <button
         onClick={() => setShowLogoutModal(true)}
-        className="w-full px-4 py-2.5 bg-red-500 text-white rounded hover:bg-red-600 transition-colors mt-4 font-medium"
+        className="w-full px-4 py-2.5 bg-red-500 text-white rounded hover:bg-red-600 transition-colors mt-4 font-medium text-sm"
       >
         Logout
       </button>
+    </aside>
 
-      {showLogoutModal && (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-center z-50 p-4">
-          <div className="bg-white w-full max-w-[540px] rounded-[18px] shadow-2xl px-8 py-9 border border-gray-100">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Logout</h2>
-            <p className="text-base text-gray-600 leading-relaxed max-w-[430px]">
-              Apakah Anda yakin ingin logout dari akun ini?
-            </p>
-
-            <div className="flex justify-end gap-3 mt-8">
-              <button
-                onClick={() => setShowLogoutModal(false)}
-                className="min-w-[96px] px-6 py-3 bg-[#D1D5DB] text-gray-900 rounded-md text-base font-medium hover:bg-gray-400 transition-colors"
-              >
-                Batal
-              </button>
-              <button
-                onClick={handleConfirmLogout}
-                className="min-w-[96px] px-6 py-3 bg-[#E30613] text-white rounded-md text-base font-medium hover:bg-red-700 transition-colors"
-              >
-                Logout
-              </button>
-            </div>
+    {showLogoutModal && (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-[9999] p-4">
+        <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl px-8 py-8 border border-gray-100">
+          <h2 className="text-xl font-bold text-gray-900 mb-3">Logout</h2>
+          <p className="text-sm text-gray-600 leading-relaxed">
+            Apakah Anda yakin ingin logout dari akun ini?
+          </p>
+          <div className="flex justify-end gap-3 mt-7">
+            <button
+              onClick={() => setShowLogoutModal(false)}
+              className="px-5 py-2.5 bg-gray-200 text-gray-800 rounded-lg text-sm font-medium hover:bg-gray-300 transition-colors"
+            >
+              Batal
+            </button>
+            <button
+              onClick={handleConfirmLogout}
+              className="px-5 py-2.5 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+            >
+              Logout
+            </button>
           </div>
         </div>
-      )}
-    </aside>
+      </div>
+    )}
+  </>
   );
 }

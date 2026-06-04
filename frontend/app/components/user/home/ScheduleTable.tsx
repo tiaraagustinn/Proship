@@ -55,6 +55,7 @@ function formatJam(jam: string) {
 }
 
 interface Schedule {
+  id_jadwal: number;
   asal: string;
   tujuan: string;
   jam: string;
@@ -162,7 +163,7 @@ export default function ScheduleTable() {
                         <td className="px-5 py-3.5 text-gray-700">{row.armada}</td>
                         <td className="px-5 py-3.5 text-center">
                           <Link
-                            href="/user/tingkat-keselamatan"
+                            href={`/user/tingkat-keselamatan?id=${row.id_jadwal}`}
                             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-opacity hover:opacity-80 ${safetyStyle(level)}`}
                           >
                             <span className={`w-1.5 h-1.5 rounded-full ${safetyDot(level)}`} />

@@ -1,4 +1,16 @@
-import { getAllJadwal, createJadwal, updateJadwal, deleteJadwal } from '../services/jadwalService.js';
+import { getAllJadwal, createJadwal, updateJadwal, deleteJadwal, getJadwalDetail } from '../services/jadwalService.js';
+
+export const getJadwalDetailById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = await getJadwalDetail(id);
+    if (!data) return res.status(404).json({ error: 'Jadwal tidak ditemukan' });
+    res.json(data);
+  } catch (error) {
+    console.error('JADWAL DETAIL ERROR:', error);
+    res.status(500).json({ error: 'Gagal ambil detail jadwal', message: error.message });
+  }
+};
 
 export const getJadwal = async (req, res) => {
   try {

@@ -59,7 +59,7 @@ export default function AdminHeader({ title, userName = 'Tiara Agustin' }: Heade
   };
 
   return (
-    <div className="bg-black pt-6 md:pt-10 pb-2 px-4 md:px-8">
+    <div className="bg-[#0A1542] pt-6 md:pt-10 pb-2 px-4 md:px-8">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-3">
           {/* Hamburger button - mobile only */}

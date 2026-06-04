@@ -441,7 +441,7 @@ export default function DataMasterPage() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="bg-teal-800 text-white">
+              <tr className="bg-[#7692FF] text-white">
                 <th className="p-4 text-left font-semibold">Nama Kapal</th>
                 <th className="p-4 text-center font-semibold">Tipe</th>
                 <th className="p-4 text-center font-semibold">Kap. Muatan</th>
@@ -476,7 +476,7 @@ export default function DataMasterPage() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="bg-teal-800 text-white">
+              <tr className="bg-[#7692FF] text-white">
                 <th className="p-4 text-left font-semibold">Nama Pelabuhan</th>
                 <th className="p-4 text-left font-semibold">Alamat</th>
                 <th className="p-4 text-center font-semibold">Lat / Long</th>
@@ -505,7 +505,7 @@ export default function DataMasterPage() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="bg-teal-800 text-white">
+              <tr className="bg-[#7692FF] text-white">
                 <th className="p-4 text-center font-semibold">Rute</th>
                 <th className="p-4 text-center font-semibold">Jarak (km)</th>
                 <th className="p-4 text-center font-semibold">Aksi</th>
@@ -531,7 +531,7 @@ export default function DataMasterPage() {
   };
 
   return (
-    <div className="m-7 p-8 bg-[#838383] rounded-lg shadow">
+    <div className="m-7 p-8 bg-[#3D518C] rounded-lg shadow">
       <div className="flex justify-between items-center mb-6">
         <div className="flex gap-0 border-b-2 border-white">
           {['kapal', 'pelabuhan', 'rute'].map(tab => (
@@ -552,7 +552,7 @@ export default function DataMasterPage() {
         </button>
       </div>
       {error && <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">{error}</div>}
-      <div className="rounded-xl overflow-hidden border-8 border-teal-700 shadow-lg bg-white">{renderTable()}</div>
+      <div className="rounded-xl overflow-hidden border-8 border-[#8ba1fa] shadow-lg bg-white">{renderTable()}</div>
 
       {showAddModal && (
         <div className="fixed inset-0 bg-black/30 flex justify-center items-center z-50 p-4">

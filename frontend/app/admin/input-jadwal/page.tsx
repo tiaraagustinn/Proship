@@ -255,7 +255,7 @@ export default function JadwalPage() {
   );
 
   return (
-    <div className="m-3 md:m-7 p-4 md:p-8 bg-[#838383] rounded-lg shadow">
+    <div className="m-3 md:m-7 p-4 md:p-8 bg-[#3D518C] rounded-lg shadow">
       {/* Search and Add */}
       <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 mb-6">
         <input
@@ -263,11 +263,11 @@ export default function JadwalPage() {
           placeholder="Cari jadwal"
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
-          className="px-4 py-3 border border-gray-500 bg-[#D9D9D9] rounded-lg w-full sm:w-80 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-gray-600 shadow-lg"
+          className="px-4 py-3 border border-gray-500 bg-gray-100 rounded-lg w-full sm:w-80 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-gray-600 shadow-lg"
         />
         <button
           onClick={() => { resetForm(); setShowAddModal(true); }}
-          className="flex items-center justify-center gap-2 px-6 py-3 bg-[#D9D9D9] text-gray-800 font-semibold rounded-lg hover:bg-gray-100 transition shadow-gray-600 shadow-lg"
+          className="flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 text-gray-800 font-semibold rounded-lg hover:bg-[#D9D9D9] transition shadow-gray-600 shadow-lg"
         >
           <Plus className="w-5 h-5" />
           Tambah Data
@@ -275,7 +275,7 @@ export default function JadwalPage() {
       </div>
 
       {/* Table */}
-      <div className="rounded-xl overflow-hidden border-8 border-teal-700 shadow-lg">
+      <div className="rounded-xl overflow-hidden border-8 border-[#8ba1fa] shadow-lg">
         <div className="overflow-x-auto">
           {loading ? (
             <div className="p-8 text-center text-white bg-gray-600">Memuat data...</div>
@@ -284,7 +284,7 @@ export default function JadwalPage() {
           ) : (
             <table className="w-full">
               <thead>
-                <tr className="bg-teal-800 text-white">
+                <tr className="bg-[#7692FF] text-white">
                   <th className="p-4 text-center font-semibold">Keberangkatan</th>
                   <th className="p-4 text-center font-semibold">Kedatangan</th>
                   <th className="p-4 text-center font-semibold">Tanggal</th>

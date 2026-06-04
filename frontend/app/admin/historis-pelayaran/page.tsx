@@ -185,7 +185,7 @@ export default function HistorisPelayaranPage() {
   };
 
   return (
-    <div className="m-3 md:m-7 p-4 md:p-8 bg-[#838383] rounded-lg shadow">
+    <div className="m-3 md:m-7 p-4 md:p-8 bg-[#3D518C] rounded-lg shadow">
 
       {/* Filter Bar */}
       <div className="bg-white rounded-lg px-5 py-4 mb-4 flex flex-wrap items-end gap-3">
@@ -309,7 +309,7 @@ export default function HistorisPelayaranPage() {
         <button
           onClick={() => setIsExportModalOpen(true)}
           disabled={selectedIds.length === 0}
-          className={`px-8 py-3 mt-5 font-semibold rounded-lg transition ${selectedIds.length === 0 ? 'bg-gray-400 text-gray-600 cursor-not-allowed' : 'bg-black text-white hover:bg-gray-800'}`}
+          className={`px-8 py-3 mt-5 font-semibold rounded-lg transition ${selectedIds.length === 0 ? 'bg-gray-400 text-gray-700 cursor-not-allowed' : 'bg-black text-white hover:bg-gray-800'}`}
         >
           Export Data {selectedIds.length > 0 ? `(${selectedIds.length} dipilih)` : ''}
         </button>

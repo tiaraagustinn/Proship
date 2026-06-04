@@ -243,14 +243,14 @@ export default function ManajemenAkunPage() {
 
   if (loading) {
     return (
-      <div className="m-7 p-8 bg-[#838383] rounded-lg shadow flex items-center justify-center min-h-[400px]">
+      <div className="m-7 p-8 bg-[#3D518C] rounded-lg shadow flex items-center justify-center min-h-[400px]">
         <p className="text-white text-lg">Memuat data...</p>
       </div>
     );
   }
 
   return (
-    <div className="m-7 p-8 bg-[#838383] rounded-lg shadow">
+    <div className="m-7 p-8 bg-[#3D518C] rounded-lg shadow">
       {/* Notification */}
       {notification && (
         <div className={`mb-4 p-4 rounded-lg flex items-center gap-2 ${
@@ -273,11 +273,11 @@ export default function ManajemenAkunPage() {
           placeholder="Cari akun petugas (username, nama, email)"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="px-4 py-3 border border-gray-500 bg-[#D9D9D9] rounded-lg w-96 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-gray-600 shadow-lg"
+          className="px-4 py-3 border border-gray-500 bg-gray-100 rounded-lg w-96 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-gray-600 shadow-lg"
         />
         <button
           onClick={handleAddAkun}
-          className="flex items-center gap-2 px-6 py-3 bg-white text-gray-800 font-semibold rounded-lg hover:bg-gray-100 transition shadow-lg"
+          className="flex items-center gap-2 px-6 py-3 bg-white text-gray-800 font-semibold rounded-lg hover:bg-[#D9D9D9] transition shadow-lg"
         >
           <Plus className="w-5 h-5" />
           Tambah Akun Petugas
@@ -285,11 +285,11 @@ export default function ManajemenAkunPage() {
       </div>
 
       {/* Table Container */}
-      <div className="rounded-xl overflow-hidden border-8 border-teal-700 shadow-lg">
+      <div className="rounded-xl overflow-hidden border-8 border-[#8ba1fa] shadow-lg">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="bg-teal-800 text-white">
+              <tr className="bg-[#7692FF] text-white">
                 <th className="p-4 text-center font-semibold">Username</th>
                 <th className="p-4 text-center font-semibold">Nama</th>
                 <th className="p-4 text-center font-semibold">Email</th>

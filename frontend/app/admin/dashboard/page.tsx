@@ -74,7 +74,7 @@ export default function AdminDashboardPage() {
   };
 
   return (
-    <div className="m-3 md:m-7 p-4 md:p-8 bg-[#838383] rounded-lg shadow">
+    <div className="m-3 md:m-7 p-4 md:p-8 bg-[#3D518C] rounded-lg shadow">
       {/* Greeting Section */}
       <div className="mb-6 md:mb-8 pb-4 md:pb-6 border-b border-gray-300">
         <h1 className="text-2xl md:text-4xl font-bold text-white">Selamat Datang, {userName}! 👋</h1>

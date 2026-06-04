@@ -54,16 +54,16 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   if (!isLoginPage && isAuthorized === null) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-black">
-        <p className="text-white">Loading...</p>
+      <div className="flex items-center justify-center min-h-screen bg-[#0A1542]">
+        <p className="text-slate-900">Loading...</p>
       </div>
     );
   }
 
   if (!isAuthorized && !isLoginPage) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-black">
-        <p className="text-white">Redirecting...</p>
+      <div className="flex items-center justify-center min-h-screen bg-[#0A1542]">
+        <p className="text-slate-900">Redirecting...</p>
       </div>
     );
   }
@@ -81,7 +81,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           />
         )}
         <AdminSidebar />
-        <div className="flex-1 flex flex-col bg-black min-w-0 md:ml-0">
+        <div className="flex-1 flex flex-col bg-[#0A1542] min-w-0 md:ml-0">
           <AdminHeader title={title} />
           <main className="flex-1 overflow-auto">
             {children}

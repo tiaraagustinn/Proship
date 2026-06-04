@@ -36,7 +36,7 @@ export default function AdminSidebar() {
     <>
       <aside
         className={`
-          fixed top-0 left-0 h-screen w-64 bg-[#838383] shadow-lg p-6 flex flex-col z-40
+          fixed top-0 left-0 h-screen w-64 bg-[#3D518C] shadow-lg p-6 flex flex-col z-40
           transition-transform duration-300 ease-in-out
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           md:sticky md:top-0 md:translate-x-0 md:flex md:shrink-0
@@ -62,7 +62,7 @@ export default function AdminSidebar() {
               className={`block w-full px-4 py-3 text-left rounded-lg transition-colors text-sm ${
                 pathname === item.path
                   ? 'bg-white text-gray-800 font-medium'
-                  : 'text-white hover:bg-gray-500'
+                  : 'text-white hover:bg-[#0A163C]'
               }`}
             >
               {item.name}

@@ -36,17 +36,22 @@ async function createCuacaFromBMKG() {
   const fuzzy = evalMamdani(waveM, windKt, currCms, { step: 0.5 });
 
   // Simpan ke DB dengan konversi ke satuan kecil agar muat decimal(3,2)
-  // kec_angin: knot → m/s (max ~9.99 = ~19 knot, cukup untuk kondisi normal)
-  // kec_arus : cm/s → m/s
   const kecAngin = Math.min(parseFloat((windKt  * 0.514).toFixed(2)), 9.99);
   const kecArus  = Math.min(parseFloat((currCms / 100  ).toFixed(2)), 9.99);
   const tinggi   = Math.min(parseFloat(waveM.toFixed(2)),             9.99);
 
+  const arahAngin  = [entry.wind_from, entry.wind_to].filter(Boolean).join(' – ') || null;
+  const gelDesc    = entry.wave_desc ? `${entry.wave_desc}${entry.wave_cat ? ` (${entry.wave_cat})` : ''}` : null;
+  const kondisiDet = entry.weather_desc || null;
+  const peringatan = entry.warning_desc || null;
+
   const result = await query(
     `INSERT INTO cuaca_laut
-       (kec_angin, kec_arus, tinggi_gelombang, longitude, latitude, timestamp, kondisi_cuaca, tingkat_keselamatan)
-     VALUES (?, ?, ?, ?, ?, NOW(), ?, ?)`,
-    [kecAngin, kecArus, tinggi, LON, LAT, mapKondisi(entry.weather), fuzzy.category]
+       (kec_angin, kec_arus, tinggi_gelombang, longitude, latitude, timestamp, kondisi_cuaca, tingkat_keselamatan,
+        input_gelombang, input_angin, input_arus, skor_fuzzy, kondisi_detail, peringatan, arah_angin, gelombang_desc)
+     VALUES (?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [kecAngin, kecArus, tinggi, LON, LAT, mapKondisi(entry.weather), fuzzy.category.toLowerCase(),
+     waveM, windKt, currCms, fuzzy.score, kondisiDet, peringatan, arahAngin, gelDesc]
   );
   return result.insertId;
 }
@@ -128,4 +133,67 @@ export const deleteJadwal = (id_jadwal) => {
       else resolve(result.affectedRows);
     });
   });
+};
+
+export const getJadwalDetail = async (id_jadwal) => {
+  const rows = await query(
+    `SELECT
+       j.id_jadwal, j.tanggal, j.waktu_berangkat AS jam, j.status_jadwal,
+       pa.nama_pelabuhan AS asal, pt.nama_pelabuhan AS tujuan,
+       k.nama_kapal AS armada,
+       c.tingkat_keselamatan, c.kondisi_cuaca,
+       c.input_gelombang, c.input_angin, c.input_arus, c.skor_fuzzy,
+       c.kondisi_detail, c.peringatan, c.arah_angin, c.gelombang_desc,
+       c.kec_angin, c.kec_arus, c.tinggi_gelombang, c.timestamp AS waktu_cuaca
+     FROM jadwal_pelayaran j
+     JOIN kapal k          ON j.id_kapal = k.id_kapal
+     JOIN rute_pelayaran r ON j.id_rute  = r.id_rute
+     JOIN pelabuhan pa     ON r.id_pelabuhan_asal   = pa.id_pelabuhan
+     JOIN pelabuhan pt     ON r.id_pelabuhan_tujuan = pt.id_pelabuhan
+     LEFT JOIN cuaca_laut c ON j.id_cuaca = c.id_cuaca
+     WHERE j.id_jadwal = ?`,
+    [id_jadwal]
+  );
+  if (!rows.length) return null;
+
+  const row = rows[0];
+  let ruleDetails = [];
+
+  // Tentukan input fuzzy: pakai yang tersimpan, atau hitung balik dari kec jika belum ada
+  let wave  = parseFloat(row.input_gelombang) || 0;
+  let wind  = parseFloat(row.input_angin)     || 0;
+  let curr  = parseFloat(row.input_arus)      || 0;
+  const storedScore = parseFloat(row.skor_fuzzy);
+  let score = Number.isFinite(storedScore) && storedScore > 0 ? storedScore : null;
+  let isEstimasi = false;
+
+  const hasStoredInputs = wind > 0 || wave > 0 || curr > 0;
+  if (!hasStoredInputs && row.kec_angin != null) {
+    // Jadwal lama: hitung balik dari kec yang tersimpan (m/s → satuan BMKG)
+    wave = parseFloat(row.tinggi_gelombang) || 0;
+    wind = parseFloat(row.kec_angin) / 0.514;  // m/s → knot
+    curr = (parseFloat(row.kec_arus) || 0) * 100; // m/s → cm/s
+    isEstimasi = true;
+    // Score tidak bisa dihitung akurat dari nilai yang sudah dikonversi, tampilkan null
+    score = null;
+  }
+
+  if (!isEstimasi) {
+    // Jadwal baru dengan data lengkap — hitung rule details
+    try {
+      const fuzzy = evalMamdani(wave, wind, curr, { step: 0.5 });
+      ruleDetails = fuzzy.ruleDetails;
+      if (!score) score = fuzzy.score;
+    } catch (_) {}
+  }
+
+  return {
+    ...row,
+    input_gelombang: wave,
+    input_angin: parseFloat(wind.toFixed(1)),
+    input_arus: parseFloat(curr.toFixed(1)),
+    skor_fuzzy: score,
+    isEstimasi,
+    ruleDetails,
+  };
 };

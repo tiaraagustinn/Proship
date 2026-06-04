@@ -10,7 +10,12 @@
       "Bash(node *)",
       "Bash(rm \"E:/College/TUGAS AKHIR/project/real - Copy - Copy/proship/backend/src/services/aisService.js\")",
       "Bash(rm \"E:/College/TUGAS AKHIR/project/real - Copy - Copy/proship/backend/src/routes/aisRoutes.js\")",
-      "Bash(npm uninstall *)"
+      "Bash(npm uninstall *)",
+      "Bash(Start-Sleep -Seconds 4)",
+      "Bash(Invoke-RestMethod -Uri \"http://localhost:5000/\" -Method GET)",
+      "Bash(ConvertTo-Json)",
+      "Bash(Get-ChildItem -Path \"E:\\\\College\\\\TUGAS AKHIR\\\\project\\\\real - Copy - Copy\\\\proship\\\\frontend\" -Recurse -Filter \"*jadwal*\" -Type f)",
+      "Bash(Select-Object -ExpandProperty FullName)"
     ]
   }
 }

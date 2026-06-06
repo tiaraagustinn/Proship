@@ -184,11 +184,15 @@ export default function JadwalPage() {
 
   const filteredData = jadwalData.filter(item => {
     const keywords = searchQuery.toLowerCase().split(' ');
+    const tanggalFormatted = formatTanggal(item.tanggal).toLowerCase();
     return keywords.every(word =>
       item.asal?.toLowerCase().includes(word) ||
       item.tujuan?.toLowerCase().includes(word) ||
       item.armada?.toLowerCase().includes(word) ||
-      item.jam?.toLowerCase().includes(word)
+      item.jam?.toLowerCase().includes(word) ||
+      tanggalFormatted.includes(word) ||
+      item.tanggal?.toLowerCase().includes(word) ||
+      item.status_jadwal?.toLowerCase().includes(word)
     );
   });
 

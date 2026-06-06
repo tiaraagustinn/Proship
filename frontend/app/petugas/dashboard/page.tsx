@@ -76,116 +76,126 @@ export default function DashboardPage() {
     fetchStats();
   }, []);
 
+  const handleInputJadwal = () => {
+    router.push('/petugas/input-jadwal');
+  };
+
+  const handleProfil = () => {
+    router.push('/petugas/profil');
+  };
+
   return (
-    <div className="p-4 md:p-8 m-3 md:m-7 bg-white rounded-lg shadow">
-      {/* Greeting */}
-      <div className="mb-6 md:mb-8 pb-4 md:pb-6 border-b border-gray-200">
-        <h1 className="text-2xl md:text-4xl font-bold text-gray-800">Selamat Datang, {userName}! 👋</h1>
-        <p className="text-gray-600 mt-2 text-sm md:text-base">Berikut adalah ringkasan aktivitas pelayaran</p>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
-        {/* Card 1 - Jumlah Pelabuhan */}
-        <div className="bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl shadow-lg overflow-hidden">
-          <div className="p-5 md:p-8">
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <div className="text-3xl md:text-5xl font-bold text-white mb-2 md:mb-3">{stats.jumlahPelabuhan}</div>
-                <div className="text-white text-sm font-medium">Jumlah Pelabuhan</div>
-                <div
-                  onClick={() => router.push('/petugas/input-jadwal')}
-                  className="text-white text-xs mt-3 md:mt-4 hover:underline cursor-pointer"
-                >
-                  Detail →
-                </div>
-              </div>
-              <div className="bg-white/20 rounded-full p-3 md:p-4 flex-shrink-0">
-                <Anchor className="w-6 h-6 md:w-8 md:h-8 text-white" strokeWidth={2} />
-              </div>
-            </div>
+    <div className="m-3 md:m-7 space-y-6">
+      <section className="rounded-[28px] bg-white p-6 shadow-sm border border-slate-200">
+        <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Dashboard Petugas</p>
+            <h1 className="mt-3 text-3xl font-semibold text-slate-900">Halo, {userName}</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
+              Pantau data pelabuhan, kapal, dan perjalanan dengan tampilan yang ringan dan mudah dibaca.
+            </p>
           </div>
         </div>
+      </section>
 
-        {/* Card 2 - Jumlah Kapal */}
-        <div className="bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl shadow-lg overflow-hidden">
-          <div className="p-5 md:p-8">
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <div className="text-3xl md:text-5xl font-bold text-white mb-2 md:mb-3">{stats.jumlahKapal}</div>
-                <div className="text-white text-sm font-medium">Jumlah Kapal</div>
-                <div
-                  onClick={() => router.push('/petugas/input-jadwal')}
-                  className="text-white text-xs mt-3 md:mt-4 hover:underline cursor-pointer"
-                >
-                  Detail →
-                </div>
-              </div>
-              <div className="bg-white/20 rounded-full p-3 md:p-4 flex-shrink-0">
-                <Ship className="w-6 h-6 md:w-8 md:h-8 text-white" strokeWidth={2} />
-              </div>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm text-slate-500">Pelabuhan</p>
+              <p className="mt-4 text-4xl font-semibold text-slate-900">{stats.jumlahPelabuhan}</p>
+            </div>
+            <div className="rounded-3xl bg-slate-100 p-3 text-slate-700">
+              <Anchor className="w-6 h-6" strokeWidth={2} />
             </div>
           </div>
+          <button
+            onClick={handleInputJadwal}
+            className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900"
+          >
+            Tambah jadwal →
+          </button>
         </div>
 
-        {/* Card 3 - Jumlah Perjalanan */}
-        <div className="bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl shadow-lg overflow-hidden sm:col-span-2 lg:col-span-1">
-          <div className="p-5 md:p-8">
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <div className="text-3xl md:text-5xl font-bold text-white mb-2 md:mb-3">{stats.jumlahPerjalanan}</div>
-                <div className="text-white text-sm font-medium">Historis Perjalanan</div>
-                <div
-                  onClick={() => router.push('/petugas/historis-pelayaran')}
-                  className="text-white text-xs mt-3 md:mt-4 hover:underline cursor-pointer"
-                >
-                  Detail →
-                </div>
-              </div>
-              <div className="bg-white/20 rounded-full p-3 md:p-4 flex-shrink-0">
-                <ClipboardList className="w-6 h-6 md:w-8 md:h-8 text-white" strokeWidth={2} />
-              </div>
+        <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm text-slate-500">Kapal</p>
+              <p className="mt-4 text-4xl font-semibold text-slate-900">{stats.jumlahKapal}</p>
+            </div>
+            <div className="rounded-3xl bg-slate-100 p-3 text-slate-700">
+              <Ship className="w-6 h-6" strokeWidth={2} />
             </div>
           </div>
+          <button
+            onClick={handleInputJadwal}
+            className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900"
+          >
+            Tambah jadwal →
+          </button>
+        </div>
+
+        <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm text-slate-500">Perjalanan</p>
+              <p className="mt-4 text-4xl font-semibold text-slate-900">{stats.jumlahPerjalanan}</p>
+            </div>
+            <div className="rounded-3xl bg-slate-100 p-3 text-slate-700">
+              <ClipboardList className="w-6 h-6" strokeWidth={2} />
+            </div>
+          </div>
+          <button
+            onClick={() => router.push('/petugas/historis-pelayaran')}
+            className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900"
+          >
+            Lihat historis →
+          </button>
         </div>
       </div>
 
-      {/* Chart */}
-      <div className="bg-black p-4 md:p-6 rounded-xl shadow-md">
-        <h3 className="text-white mb-4 md:mb-6 text-base md:text-lg font-semibold">
-          Tren Pergerakan Jumlah Penumpang
-        </h3>
-        {trendData.length === 0 ? (
-          <div className="flex items-center justify-center h-40 text-gray-500 text-sm">
-            Belum ada data historis pelayaran
+      <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900">Tren Jumlah Penumpang</h2>
+            <p className="mt-1 text-sm text-slate-600">Grafik sederhana untuk memahami pergerakan penumpang.</p>
           </div>
-        ) : (
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={trendData}>
-              <defs>
-                <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.1} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-              <XAxis dataKey="name" stroke="#666" tick={{ fontSize: 12 }} />
-              <YAxis stroke="#666" tick={{ fontSize: 12 }} />
-              <Tooltip
-                contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '8px' }}
-                labelStyle={{ color: '#fff' }}
-              />
-              <Area
-                type="monotone"
-                dataKey="value"
-                stroke="#3B82F6"
-                strokeWidth={2}
-                fillOpacity={1}
-                fill="url(#colorValue)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        )}
-      </div>
+        </div>
+
+        <div className="mt-6 rounded-3xl border border-slate-200 bg-slate-50 p-4">
+          {trendData.length === 0 ? (
+            <div className="flex h-72 items-center justify-center text-slate-400 text-sm">
+              Belum ada data historis pelayaran
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={320}>
+              <AreaChart data={trendData}>
+                <defs>
+                  <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#38bdf8" stopOpacity={0.1} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
+                <XAxis dataKey="name" stroke="#64748b" tick={{ fontSize: 12 }} />
+                <YAxis stroke="#64748b" tick={{ fontSize: 12 }} />
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px' }}
+                  labelStyle={{ color: '#0f172a' }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke="#38bdf8"
+                  strokeWidth={2}
+                  fillOpacity={1}
+                  fill="url(#colorValue)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      </section>
     </div>
   );
 }

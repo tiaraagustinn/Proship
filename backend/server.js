@@ -13,6 +13,7 @@ import kapalRoutes from './src/routes/kapalRoutes.js';
 import pelabuhanRoutes from './src/routes/pelabuhanRoutes.js';
 import ruteRoutes from './src/routes/ruteRoutes.js';
 import historisRoutes from './src/routes/historisRoutes.js';
+import manifesRoutes from './src/routes/manifesRoutes.js';
 import cron from 'node-cron';
 import { refreshAll } from './src/services/bmkgCacheService.js';
 
@@ -185,6 +186,7 @@ app.use('/api/kapal', kapalRoutes);
 app.use('/api/pelabuhan', pelabuhanRoutes);
 app.use('/api/rute', ruteRoutes);
 app.use('/api/historis', historisRoutes);
+app.use('/api/manifes', manifesRoutes);
 
 // ✅ 404 Handler
 app.use((req, res) => {

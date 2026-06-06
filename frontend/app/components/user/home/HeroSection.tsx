@@ -12,17 +12,14 @@ const HeroSection = () => {
           {/* Text Content */}
           <div className="text-black">
               <h1 className="text-4xl lg:text-3xl font-semibold mb-12 leading-tight">
-                LOREM IPSUM DOLOR SIT AMET
+                Navigasi Lebih Aman dengan Informasi Maritim Terintegrasi
               </h1>
               <div className="space-y-4 text-lg leading-relaxed">
                 <p>
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation.
+                 Akses data cuaca laut, pelacakan kapal berbasis AIS, dan dashboard monitoring dalam satu platform yang dirancang untuk mendukung keselamatan pelayaran dan operasional pelabuhan.
                 </p>
                 <p>
-                  Ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-                </p>
-                <p>
-                  Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error.
+                  Dapatkan informasi terkini secara real-time untuk membantu memantau kondisi laut dan aktivitas pelayaran dengan lebih mudah dan efektif.
                 </p>
               </div>
           </div>

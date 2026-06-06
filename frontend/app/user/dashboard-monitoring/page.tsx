@@ -83,7 +83,7 @@ export default function DashboardMonitoringPage() {
       const params = new URLSearchParams();
       if (from) params.set('from', from);
       if (to)   params.set('to', to);
-      const res = await fetch(`${API}/historis/dashboard?${params}`);
+      const res = await fetch(`${API}/manifes/dashboard?${params}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       if (json.success) setData(json);
@@ -249,12 +249,12 @@ export default function DashboardMonitoringPage() {
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie
+                      <Pie
                       data={pieData}
                       cx="50%" cy="50%"
                       outerRadius={110}
                       dataKey="value"
-                      label={({ name, value }) => `${name}: ${fmt(value)}`}
+                      label={({ name, value }: any) => `${name}: ${fmt(Number(value || 0))}`}
                       labelLine={true}
                     >
                       {pieData.map((_, i) => (

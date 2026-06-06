@@ -149,11 +149,6 @@ export default function ManajemenAkunPage() {
     setShowEditModal(true);
   };
 
-  const handleViewInfo = (id: number) => {
-    // TODO: Implement view info functionality
-    alert(`View info untuk akun ID ${id}`);
-  };
-
   const handleDelete = (id: number) => {
     setSelectedId(id);
     setShowDeleteModal(true);
@@ -167,7 +162,9 @@ export default function ManajemenAkunPage() {
     setSelectedId(null);
   };
 
-  const handleChange = (e: any) => {
+  const handleChange = (
+  e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value

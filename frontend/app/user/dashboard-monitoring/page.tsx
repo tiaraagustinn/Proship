@@ -87,8 +87,12 @@ export default function DashboardMonitoringPage() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       if (json.success) setData(json);
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        setError(e.message);
+      } else {
+        setError("Terjadi kesalahan");
+      }
     } finally {
       setLoading(false);
     }
@@ -254,7 +258,9 @@ export default function DashboardMonitoringPage() {
                       cx="50%" cy="50%"
                       outerRadius={110}
                       dataKey="value"
-                      label={({ name, value }: any) => `${name}: ${fmt(Number(value || 0))}`}
+                      label={(props: { name?: string; value?: number | string }) =>
+                      `${props.name}: ${fmt(Number(props.value ?? 0))}`
+                      }
                       labelLine={true}
                     >
                       {pieData.map((_, i) => (

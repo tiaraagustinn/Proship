@@ -4,6 +4,22 @@
 
 import { useState, useEffect } from 'react';
 
+interface LokasiData {
+  adm1?: string;
+  adm2?: string;
+  adm3?: string;
+  adm4?: string;
+  provinsi?: string;
+  kota?: string;
+  kotkab?: string;
+  kecamatan?: string;
+  desa?: string;
+  kelurahan?: string;
+  lon?: number;
+  lat?: number;
+  timezone?: string;
+}
+
 interface WeatherData {
   lokasi: {
     adm1?: string;
@@ -21,7 +37,7 @@ interface WeatherData {
     timezone?: string;
   };
   data: Array<{
-    lokasi?: any;
+  lokasi?: LokasiData;
     cuaca: Array<{
       datetime?: string;
       local_datetime?: string;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
-import { usePageTitle } from '@/app/petugas/layout';
+import { usePageTitle } from '@/app/admin/layout';
 import { Edit, Trash2, Filter, X } from 'lucide-react';
 
 const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
@@ -50,7 +50,7 @@ export default function HistorisPelayaranPage() {
   const [filterTahun, setFilterTahun] = useState('');
   const [filterRute, setFilterRute] = useState('');
 
-  useEffect(() => { setTitle('Historis Pelayaran'); }, [setTitle]);
+  useEffect(() => { setTitle('Historis Angkutan'); }, [setTitle]);
 
   const fetchManifes = () => {
     setLoading(true);
@@ -163,7 +163,7 @@ export default function HistorisPelayaranPage() {
   };
 
   return (
-    <div className="m-3 md:m-7 p-4 md:p-8 bg-white rounded-lg shadow">
+    <div className="m-3 md:m-7 p-4 md:p-8 bg-[#3D518C] rounded-lg shadow">
 
       {/* Filter Bar */}
       <div className="bg-white rounded-lg px-5 py-4 mb-4 flex flex-wrap items-end gap-3">
@@ -227,7 +227,7 @@ export default function HistorisPelayaranPage() {
               {loading ? (
                 <tr><td colSpan={11} className="p-8 text-center text-gray-400">Memuat data...</td></tr>
               ) : filteredData.length === 0 ? (
-                <tr><td colSpan={11} className="p-8 text-center text-gray-400">{hasFilter ? 'Tidak ada data untuk filter yang dipilih' : 'Belum ada data historis pelayaran'}</td></tr>
+                <tr><td colSpan={11} className="p-8 text-center text-gray-400">{hasFilter ? 'Tidak ada data untuk filter yang dipilih' : 'Belum ada data historis angkutan'}</td></tr>
               ) : (
                 filteredData.map((item, index) => (
                   <tr key={item.id} className={`border-b border-gray-200 ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-gray-100 transition`}>

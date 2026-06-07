@@ -16,7 +16,7 @@ export default function AdminSidebar() {
     { name: 'Manajemen Akun Petugas', path: '/admin/manajemen-akun', title: 'Manajemen Akun Petugas' },
     { name: 'Data Master', path: '/admin/data-master', title: 'Data Master' },
     { name: 'Input Jadwal', path: '/admin/input-jadwal', title: 'Jadwal' },
-    { name: 'Historis Pelayaran', path: '/admin/historis-pelayaran', title: 'Historis Pelayaran' },
+    { name: 'Historis Angkutan', path: '/admin/historis-angkutan', title: 'Historis Angkutan' },
   ];
 
   const handleConfirmLogout = () => {
@@ -43,13 +43,14 @@ export default function AdminSidebar() {
         `}
       >
         {/* Logo */}
-        <div className="mb-8">
+        <div className="relative mb-8 h-[60px] w-[150px]">
           <Image
             src="/images/dishub-aceh-white.png"
             alt="Dishub Aceh Logo"
-            width={150}
-            height={60}
+            fill
+            sizes="150px"
             priority
+            style={{ objectFit: 'contain' }}
           />
         </div>
 

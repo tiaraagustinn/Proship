@@ -56,7 +56,7 @@ export default function InputHistorisPage() {
   const selectedJadwal = jadwalList.find(j => String(j.id_jadwal) === formData.id_jadwal) ?? null;
 
   useEffect(() => {
-    setTitle('Input Historis Pelayaran');
+    setTitle('Input Historis Angkutan Penyeberangan');
   }, [setTitle]);
 
   useEffect(() => {

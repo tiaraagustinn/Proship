@@ -9,9 +9,13 @@ const poppins = Poppins({
   weight: ["400", "600", "700"], // pilih variasi ketebalan
 });
 
+
 export const metadata: Metadata = {
   title: "DISHUB ACEH - Dashboard Monitoring",
   description: "Dashboard monitoring cuaca laut dan jadwal kapal DISHUB Aceh",
+  icons: {
+    icon: "/images/logo.png",
+  },
 };
 
 export default function RootLayout({

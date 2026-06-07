@@ -13,9 +13,9 @@ export default function Sidebar() {
 
   const menuItems = [
     { name: 'Dashboard', path: '/petugas/dashboard', title: 'Dashboard' },
-    { name: 'Input Historis Pelayaran', path: '/petugas/input-historis', title: 'Input Historis Pelayaran' },
+    { name: 'Input Historis Angkutan', path: '/petugas/input-historis', title: 'Input Historis Angkutan' },
     { name: 'Input Jadwal', path: '/petugas/input-jadwal', title: 'Input Jadwal' },
-    { name: 'Historis Pelayaran', path: '/petugas/historis-pelayaran', title: 'Historis Pelayaran' },
+    { name: 'Historis Angkutan', path: '/petugas/historis-angkutan', title: 'Historis Angkutan' },
     { name: 'Profil', path: '/petugas/profil', title: 'Profil' },
   ];
 
@@ -43,13 +43,14 @@ export default function Sidebar() {
       `}
     >
       {/* Logo */}
-      <div className="mb-8">
+      <div className="relative mb-8 h-[60px] w-[150px]">
         <Image
-          src="/images/dishub-logo-black.png"
+          src="/images/dishub-aceh-black.png"
           alt="Dishub Aceh Logo"
-          width={150}
-          height={60}
+          fill
+          sizes="150px"
           priority
+          style={{ objectFit: 'contain' }}
         />
       </div>
 

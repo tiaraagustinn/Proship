@@ -34,7 +34,7 @@ function normalizeInputs(entry) {
   };
 }
 
-export async function fetchAndPrepareInputs(url = "http://localhost:5000/api/dummy/perairan/dummy.json") {
+export async function fetchAndPrepareInputs(url = "https://maritim.bmkg.go.id/marine2026-data/perairan/P.A.04.json") {
   const resp = await axios.get(url);
   const data = resp.data;
   const entry = Array.isArray(data.data) && data.data.length ? data.data[0] : null;

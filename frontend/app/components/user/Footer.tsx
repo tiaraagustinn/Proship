@@ -10,7 +10,7 @@ const Footer = () => {
 
           {/* Brand & Kontak */}
           <div>
-            <img src="/images/dishub-aceh-white.png" alt="Dishub Aceh" className="w-28 mb-4" />
+            <img src="/images/dishub-aceh-white.png" alt="Dishub Aceh" className="w-28 h-auto mb-4" />
             <p className="text-sm text-gray-300 leading-relaxed">
               Sistem Dashboard Monitoring Pelayaran yang menyediakan informasi terkait
               kondisi cuaca, tinggi gelombang, dan aktivitas penyeberangan untuk mendukung

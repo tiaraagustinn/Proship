@@ -173,7 +173,7 @@ export default function HistorisPelayaranPage() {
         <div className="flex flex-col gap-1">
           <label className="text-xs text-gray-500">Tahun</label>
           <select value={filterTahun} onChange={e => { setFilterTahun(e.target.value); setSelectedIds([]); setSelectAll(false); }}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 min-w-[100px]">
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 min-w-[100px]">
             <option value="">Semua</option>
             {tahunOptions.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
@@ -181,7 +181,7 @@ export default function HistorisPelayaranPage() {
         <div className="flex flex-col gap-1">
           <label className="text-xs text-gray-500">Bulan</label>
           <select value={filterBulan} onChange={e => { setFilterBulan(e.target.value); setSelectedIds([]); setSelectAll(false); }}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 min-w-[130px]">
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 min-w-[130px]">
             <option value="">Semua</option>
             {BULAN.map((b, i) => <option key={i} value={String(i + 1)}>{b}</option>)}
           </select>
@@ -189,7 +189,7 @@ export default function HistorisPelayaranPage() {
         <div className="flex flex-col gap-1">
           <label className="text-xs text-gray-500">Rute</label>
           <select value={filterRute} onChange={e => { setFilterRute(e.target.value); setSelectedIds([]); setSelectAll(false); }}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 min-w-[200px]">
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 min-w-[200px]">
             <option value="">Semua Rute</option>
             {ruteOptions.map(r => <option key={r} value={r}>{r}</option>)}
           </select>

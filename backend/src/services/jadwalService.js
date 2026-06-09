@@ -1,5 +1,6 @@
 import db from '../config/db.js';
 import { evalMamdani } from '../utils/fuzzyMamdani.js';
+import { getBmkgEntryForTime } from './bmkgCacheService.js';
 
 const query = (sql, params = []) =>
   new Promise((resolve, reject) =>
@@ -17,32 +18,41 @@ function mapKondisi(weatherStr) {
   return 'berawan';
 }
 
-async function createCuacaFromBMKG() {
-  // Ambil cache BMKG terbaru
-  const rows = await query(
-    `SELECT data FROM bmkg_cache WHERE lokasi = 'sabang-bandaAceh' ORDER BY fetched_at DESC LIMIT 1`
-  );
-  if (!rows.length) return null;
-
-  const bmkgData = typeof rows[0].data === 'string' ? JSON.parse(rows[0].data) : rows[0].data;
-  const entry = bmkgData?.data?.[0];
+/**
+ * Buat record cuaca dari data BMKG, disesuaikan dengan jam jadwal.
+ * Mencari prakiraan yang paling dekat dengan waktu keberangkatan.
+ *
+ * @param {string} tanggal - Format 'YYYY-MM-DD'
+ * @param {string} jam     - Format 'HH:MM' atau 'HH:MM:SS'
+ */
+async function createCuacaFromBMKG(tanggal, jam) {
+  // Cari entry forecast BMKG terdekat dengan jam jadwal
+  const entry = await getBmkgEntryForTime('sabang-bandaAceh', tanggal, jam);
   if (!entry) return null;
 
-  const waveM   = parseFloat(entry.wave_max)         || 0; // meter
-  const windKt  = parseFloat(entry.wind_speed_max)   || 0; // knot
-  const currCms = parseFloat(entry.current_speed_max)|| 0; // cm/s
+  // Baca field dari API BMKG baru:
+  // wave_height   → meter (m)
+  // wind_speed    → knot (kt)
+  // current_speed → KM/H (km/j) → dikonversi ke cm/s (1 km/h = 27.7778 cm/s)
+  const waveM   = parseFloat(entry.wave_height)   || 0;
+  const windKt  = parseFloat(entry.wind_speed)     || 0;
+  const currCms = (parseFloat(entry.current_speed) || 0) * 27.7778; // km/h → cm/s
 
-  // Fuzzy pakai satuan asli BMKG (meter, knot, cm/s)
-  const fuzzy = evalMamdani(waveM, windKt, currCms, { step: 0.5 });
+  // Jalankan fuzzy Mamdani: satuan (m, knot, cm/s)
+  const fuzzy = evalMamdani(waveM, windKt, currCms);
 
-  // Simpan ke DB dengan konversi ke satuan kecil agar muat decimal(3,2)
+  // Simpan ke DB dengan konversi ke satuan kecil agar muat kolom decimal(3,2)
   const kecAngin = Math.min(parseFloat((windKt  * 0.514).toFixed(2)), 9.99);
   const kecArus  = Math.min(parseFloat((currCms / 100  ).toFixed(2)), 9.99);
   const tinggi   = Math.min(parseFloat(waveM.toFixed(2)),             9.99);
 
-  const arahAngin  = [entry.wind_from, entry.wind_to].filter(Boolean).join(' – ') || null;
-  const gelDesc    = entry.wave_desc ? `${entry.wave_desc}${entry.wave_cat ? ` (${entry.wave_cat})` : ''}` : null;
-  const kondisiDet = entry.weather_desc || null;
+  // Metadata kondisi cuaca dari entry
+  const cuacaStr   = entry.weather || entry.weather_desc || '';
+  const arahAngin  = entry.wind_from || null;
+  const gelDesc    = entry.wave_cat
+    ? `Gelombang ${entry.wave_cat}`
+    : null;
+  const kondisiDet = cuacaStr || null;
   const peringatan = entry.warning_desc || null;
 
   const result = await query(
@@ -50,8 +60,10 @@ async function createCuacaFromBMKG() {
        (kec_angin, kec_arus, tinggi_gelombang, longitude, latitude, timestamp, kondisi_cuaca, tingkat_keselamatan,
         input_gelombang, input_angin, input_arus, skor_fuzzy, kondisi_detail, peringatan, arah_angin, gelombang_desc)
      VALUES (?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [kecAngin, kecArus, tinggi, LON, LAT, mapKondisi(entry.weather), fuzzy.category.toLowerCase(),
-     waveM, windKt, currCms, fuzzy.score, kondisiDet, peringatan, arahAngin, gelDesc]
+    [kecAngin, kecArus, tinggi, LON, LAT,
+     mapKondisi(cuacaStr), fuzzy.category.toLowerCase(),
+     waveM, windKt, currCms, fuzzy.score,
+     kondisiDet, peringatan, arahAngin, gelDesc]
   );
   return result.insertId;
 }
@@ -93,8 +105,8 @@ export const getAllJadwal = (tanggal) => {
 };
 
 export const createJadwal = async (id_rute, id_kapal, tanggal, jam, id_petugas = null, status_jadwal = 'terjadwal') => {
-  // Auto-buat cuaca dari BMKG, gagal pun jadwal tetap tersimpan (id_cuaca = null)
-  const id_cuaca = await createCuacaFromBMKG().catch(err => {
+  // Auto-buat cuaca dari BMKG untuk jam jadwal ini, gagal pun jadwal tetap tersimpan (id_cuaca = null)
+  const id_cuaca = await createCuacaFromBMKG(tanggal, jam).catch(err => {
     console.warn('Gagal buat cuaca otomatis:', err.message);
     return null;
   });
@@ -181,7 +193,7 @@ export const getJadwalDetail = async (id_jadwal) => {
   if (!isEstimasi) {
     // Jadwal baru dengan data lengkap — hitung rule details
     try {
-      const fuzzy = evalMamdani(wave, wind, curr, { step: 0.5 });
+      const fuzzy = evalMamdani(wave, wind, curr);
       ruleDetails = fuzzy.ruleDetails;
       if (!score) score = fuzzy.score;
     } catch (_) {}

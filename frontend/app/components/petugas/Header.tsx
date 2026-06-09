@@ -114,7 +114,7 @@ export default function Header({ title, userName = 'Tiara Agustin' }: HeaderProp
           {/* User Dropdown */}
           <button
             type="button"
-            className="hidden sm:flex items-center gap-1 rounded px-2 py-1.5 cursor-pointer text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
+            className="hidden sm:flex items-center gap-1 rounded px-2 py-1.5 cursor-pointer text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-400"
             onClick={() => setIsDropdownOpen((prev) => !prev)}
           >
             <span className="max-w-[120px] truncate">{currentUser}</span>

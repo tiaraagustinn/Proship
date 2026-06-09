@@ -4,7 +4,8 @@ const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: '',
-  database: 'db_proship'
+  database: 'db_proship',
+  dateStrings: ['DATE']
 });
 
 db.connect((err) => {

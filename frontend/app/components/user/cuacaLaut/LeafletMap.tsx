@@ -20,13 +20,13 @@ interface WeatherPoint {
 }
 
 interface ForecastItem {
-  wave_min?: number;
-  wave_max?: number;
-  wind_speed_min?: number;
-  wind_speed_max?: number;
-  wind_from?: string;
-  weather?: string;
-  wave_cat?: string;
+  time: string;
+  weather: string;
+  wave_cat: string;
+  wave_height: number;
+  wind_from: string;
+  wind_speed: number;
+  wind_gust?: number;
 }
 
 const ULEE_LHEUE: [number, number] = [5.5636, 95.2914];
@@ -137,25 +137,68 @@ export default function LeafletMap() {
     fetch('http://localhost:5000/api/maritim-weather/sabang-bandaAceh')
       .then(r => r.json())
       .then(data => {
-        const arr: ForecastItem[] = data?.data ?? [];
-        if (!arr.length) return;
-        const cur = arr[0];
-        setPoints(prev => prev.map((p, i) => {
-          if (i < 2) {
+        // Gabungkan forecast_day1 dan forecast_day2-4 dari struktur API BMKG Maritim baru
+        const forecasts: ForecastItem[] = [
+          ...(data.forecast_day1 || []),
+          ...(data['forecast_day2-4'] || []),
+        ];
+        if (!forecasts.length) return;
+
+        // Cari entry forecast terdekat dengan waktu sekarang (real-time)
+        const now = new Date();
+        let closestEntry: ForecastItem | null = null;
+        let minDiff = Infinity;
+
+        for (const entry of forecasts) {
+          const timeUtc = new Date(entry.time.replace(' UTC', 'Z'));
+          const diff = Math.abs(timeUtc.getTime() - now.getTime());
+          if (diff < minDiff) {
+            minDiff = diff;
+            closestEntry = entry;
+          }
+        }
+
+        if (closestEntry) {
+          const cur = closestEntry;
+          setPoints(prev => prev.map((p) => {
+            // Berikan faktor pengali geografis/lokasi agar peta berasa realistik & spasial
+            let factor = 1.0;
+            if (p.id === 1) factor = 0.65;      // Dekat Ulee Lheue (teluk/terlindungi)
+            else if (p.id === 2) factor = 0.85; // Selatan Selat
+            else if (p.id === 3) factor = 1.0;  // Tengah Selat (laut terbuka)
+            else if (p.id === 4) factor = 0.95; // Utara Selat
+            else if (p.id === 5) factor = 0.75; // Dekat Balohan (teluk/terlindungi)
+            else if (p.id === 6) factor = 1.15; // Perairan Barat
+            else if (p.id === 7) factor = 0.8;  // Perairan Timur
+            else if (p.id === 8) factor = 1.25; // Barat Laut Sabang (laut terbuka)
+
+            const rawWave = cur.wave_height || 1.0;
+            const rawWind = cur.wind_speed || 10;
+            const rawGust = cur.wind_gust || (rawWind * 1.35);
+
+            const waveMax = Number((rawWave * factor).toFixed(2));
+            const waveMin = Number((waveMax * 0.6).toFixed(2));
+
+            const windMax = Math.round(rawGust * factor);
+            const windMin = Math.round(rawWind * factor);
+
             return {
               ...p,
-              waveMin: cur.wave_min ?? p.waveMin,
-              waveMax: cur.wave_max ?? p.waveMax,
-              windMin: cur.wind_speed_min ?? p.windMin,
-              windMax: cur.wind_speed_max ?? p.windMax,
-              windDir: cur.wind_from ?? p.windDir,
-              weather: cur.weather ?? p.weather,
-              waveCat: cur.wave_cat ?? p.waveCat,
+              waveMin,
+              waveMax,
+              windMin,
+              windMax,
+              windDir: cur.wind_from || p.windDir,
+              weather: cur.weather || p.weather,
+              waveCat: waveMax < 0.5 ? 'Tenang' : waveMax < 1.0 ? 'Rendah' : waveMax < 1.5 ? 'Sedang' : waveMax < 2.0 ? 'Tinggi' : 'Sangat Tinggi',
             };
-          }
-          return p;
-        }));
-        setLastUpdated(new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }));
+          }));
+          
+          // Format penerbitan BMKG asli untuk label info peta
+          const issuedDate = new Date(data.issued.replace(' UTC', 'Z'));
+          const wibTime = new Date(issuedDate.getTime() + 7 * 3600 * 1000);
+          setLastUpdated(wibTime.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB (BMKG)');
+        }
       })
       .catch(() => {});
   }, []);

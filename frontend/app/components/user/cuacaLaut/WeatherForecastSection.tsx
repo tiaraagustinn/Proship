@@ -48,6 +48,21 @@ const parseUtcMs = (s: string): number | null => {
   } catch { return null; }
 };
 
+const addHoursToUtcString = (utcStr: string, hours: number): string => {
+  if (!utcStr) return '';
+  try {
+    const d = new Date(utcStr.replace(' UTC', 'Z'));
+    if (isNaN(d.getTime())) return utcStr;
+    d.setUTCHours(d.getUTCHours() + hours);
+    const y = d.getUTCFullYear();
+    const mo = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const date = String(d.getUTCDate()).padStart(2, '0');
+    const h = String(d.getUTCHours()).padStart(2, '0');
+    const mi = String(d.getUTCMinutes()).padStart(2, '0');
+    return `${y}-${mo}-${date} ${h}:${mi} UTC`;
+  } catch { return utcStr; }
+};
+
 const fmtDate = (s: string): string => {
   const d = parseUtcToWib(s);
   if (!d) return '-';
@@ -112,19 +127,44 @@ const WeatherForecastSection = () => {
       if (!res.ok) throw new Error('Gagal mengambil data');
       const data = await res.json();
 
-      const items: ForecastItem[] = (data.data || []).map((item: any) => ({
-        validFrom: item.valid_from || '',
-        validTo: item.valid_to || '',
-        weather: item.weather || '',
-        weatherDesc: item.weather_desc || '',
-        warningDesc: item.warning_desc || 'NIL',
-        waveCat: item.wave_cat || '',
-        waveDesc: item.wave_desc || '',
-        windFrom: item.wind_from || '',
-        windTo: item.wind_to || '',
-        windSpeedMin: item.wind_speed_min || 0,
-        windSpeedMax: item.wind_speed_max || 0,
-      }));
+      const items: ForecastItem[] = [];
+
+      if (Array.isArray(data.forecast_day1)) {
+        data.forecast_day1.forEach((item: any) => {
+          items.push({
+            validFrom: item.time || '',
+            validTo: addHoursToUtcString(item.time, 1),
+            weather: item.weather || '',
+            weatherDesc: item.weather || '',
+            warningDesc: item.warning_desc || 'NIL',
+            waveCat: item.wave_cat || '',
+            waveDesc: item.wave_height != null ? `${item.wave_height.toFixed(1)} m` : (item.wave_desc || ''),
+            windFrom: item.wind_from || '',
+            windTo: item.wind_to || item.wind_from || '',
+            windSpeedMin: item.wind_speed || 0,
+            windSpeedMax: item.wind_gust || item.wind_speed || 0,
+          });
+        });
+      }
+
+      const key2_4 = 'forecast_day2-4';
+      if (Array.isArray(data[key2_4])) {
+        data[key2_4].forEach((item: any) => {
+          items.push({
+            validFrom: item.time || '',
+            validTo: addHoursToUtcString(item.time, 3),
+            weather: item.weather || '',
+            weatherDesc: item.weather || '',
+            warningDesc: item.warning_desc || 'NIL',
+            waveCat: item.wave_cat || '',
+            waveDesc: item.wave_height != null ? `${item.wave_height.toFixed(1)} m` : (item.wave_desc || ''),
+            windFrom: item.wind_from || '',
+            windTo: item.wind_to || item.wind_from || '',
+            windSpeedMin: item.wind_speed || 0,
+            windSpeedMax: item.wind_gust || item.wind_speed || 0,
+          });
+        });
+      }
 
       setForecasts(items);
       setLocation({

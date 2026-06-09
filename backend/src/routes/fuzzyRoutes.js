@@ -15,21 +15,16 @@ function nudgeIfOnBreak(val, breaks) {
 }
 
 function normalizeInputs(entry) {
-  const waveMin = Number(entry.wave_min ?? (entry.wave ?? 0));
-  const waveMax = Number(entry.wave_max ?? (entry.wave ?? 0));
-  const windMin = Number(entry.wind_speed_min ?? 0);
-  const windMax = Number(entry.wind_speed_max ?? 0);
-  const currentMin = Number(entry.current_speed_min ?? 0);
-  const currentMax = Number(entry.current_speed_max ?? 0);
-
-  const waveAvg = Number.isFinite(waveMin) && Number.isFinite(waveMax) ? (waveMin + waveMax) / 2 : waveMin || waveMax || 0;
-  const windAvg = Number.isFinite(windMin) && Number.isFinite(windMax) ? (windMin + windMax) / 2 : windMin || windMax || 0;
-  const currentAvg = Number.isFinite(currentMin) && Number.isFinite(currentMax) ? (currentMin + currentMax) / 2 : currentMin || currentMax || 0;
+  // API BMKG: wave_height (m), wind_speed (knot), current_speed (KNOT → cm/s)
+  const wave    = Number(entry.wave_height    ?? entry.wave_max    ?? entry.wave ?? 0);
+  const wind    = Number(entry.wind_speed     ?? entry.wind_speed_max            ?? 0);
+  // current_speed dari BMKG dalam satuan KM/H (km/j), konversi ke cm/s: 1 km/h = 27.7778 cm/s
+  const current = Number(entry.current_speed  ?? entry.current_speed_max         ?? 0) * 27.7778;
 
   return {
-    wave: nudgeIfOnBreak(Number(waveAvg), [1.25, 2.5, 4.0]),
-    wind: nudgeIfOnBreak(Number(windAvg), [10, 20, 30]),
-    current: nudgeIfOnBreak(Number(currentAvg), [25, 75]),
+    wave:    nudgeIfOnBreak(wave,    [1.25, 2.5, 4.0]),
+    wind:    nudgeIfOnBreak(wind,    [10, 20, 30]),
+    current: nudgeIfOnBreak(current, [25, 75]),
     raw: entry,
   };
 }
@@ -37,10 +32,20 @@ function normalizeInputs(entry) {
 export async function fetchAndPrepareInputs(url = "https://maritim.bmkg.go.id/marine2026-data/perairan/P.A.04.json") {
   const resp = await axios.get(url);
   const data = resp.data;
-  const entry = Array.isArray(data.data) && data.data.length ? data.data[0] : null;
-  if (!entry) throw new Error("no data entry found in API response");
-  return normalizeInputs(entry);
+
+  // API BMKG baru: { forecast_day1: [...], "forecast_day2-4": [...] }
+  const day1 = data.forecast_day1;
+  if (Array.isArray(day1) && day1.length) {
+    return normalizeInputs(day1[0]);
+  }
+
+  // Fallback: format lama { data: [...] }
+  const legacy = Array.isArray(data.data) && data.data.length ? data.data[0] : null;
+  if (legacy) return normalizeInputs(legacy);
+
+  throw new Error("no data entry found in API response");
 }
+
 
 export function fetchAndPrepareInputsFromFile(filePath = path.join(process.cwd(), "data", "dummy.json")) {
   if (!fs.existsSync(filePath)) throw new Error(`file not found: ${filePath}`);
@@ -54,7 +59,7 @@ export function fetchAndPrepareInputsFromFile(filePath = path.join(process.cwd()
 export async function runFuzzyFromUrl(url) {
   try {
     const inputs = await fetchAndPrepareInputs(url);
-    const result = evalMamdaniDebug(inputs.wave, inputs.wind, inputs.current, { step: 0.5 });
+    const result = evalMamdaniDebug(inputs.wave, inputs.wind, inputs.current);
     return result;
   } catch (err) {
     console.error("Fuzzy processing failed:", err.message || err);
@@ -66,7 +71,7 @@ router.get("/evaluate", async (req, res) => {
   try {
     const useFile = req.query.source === "file";
     const inputs = useFile ? fetchAndPrepareInputsFromFile() : await fetchAndPrepareInputs();
-    const result = evalMamdaniDebug(inputs.wave, inputs.wind, inputs.current, { step: 0.5 });
+    const result = evalMamdaniDebug(inputs.wave, inputs.wind, inputs.current);
     return res.json({
       inputs: { wave: inputs.wave, wind: inputs.wind, current: inputs.current },
       score: result.score,
@@ -84,7 +89,7 @@ router.post("/debug", (req, res) => {
   if (wave == null || wind == null || current == null) {
     return res.status(400).json({ error: "wave/wind/current required in body" });
   }
-  const debug = evalMamdaniDebug(Number(wave), Number(wind), Number(current), { step: step ?? 0.1 });
+  const debug = evalMamdaniDebug(Number(wave), Number(wind), Number(current));
   return res.json(debug);
 });
 

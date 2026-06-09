@@ -99,7 +99,7 @@ export default function JadwalPage() {
     setFormData({
       id_rute: String(item.id_rute),
       id_kapal: String(item.id_kapal),
-      tanggal: item.tanggal || '',
+      tanggal: item.tanggal ? String(item.tanggal).substring(0, 10) : '',
       jam: item.jam ? item.jam.substring(0, 5) : '',
       status_jadwal: item.status_jadwal || 'terjadwal',
     });
@@ -263,7 +263,7 @@ export default function JadwalPage() {
           placeholder="Cari jadwal"
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
-          className="px-4 py-3 border border-gray-300 rounded-lg w-full sm:w-80 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-3 border border-gray-300 rounded-lg w-full sm:w-80 text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <button
           onClick={() => { resetForm(); setShowAddModal(true); }}

@@ -1,10 +1,12 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 
 const HARI  = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
 const BULAN = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 function generateDates() {
   const today = new Date();
@@ -74,7 +76,7 @@ export default function ScheduleTable() {
     setLoading(true);
     setData([]);
     const tanggal = dates[selectedIdx].value;
-    fetch(`http://localhost:5000/api/jadwal?tanggal=${tanggal}`)
+    fetch(`${API_BASE}/jadwal?tanggal=${tanggal}`)
       .then(r => r.json())
       .then(result => {
         if (Array.isArray(result))             setData(result);

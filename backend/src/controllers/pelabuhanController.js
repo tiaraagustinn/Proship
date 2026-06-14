@@ -5,7 +5,7 @@ export const getAllPelabuhan = async (req, res) => {
   try {
     const sql = `
       SELECT id_pelabuhan, nama_pelabuhan, alamat, latitude, longitude
-      FROM Pelabuhan
+      FROM pelabuhan
       ORDER BY id_pelabuhan DESC
     `;
 
@@ -38,7 +38,7 @@ export const getPelabuhanById = async (req, res) => {
 
     const sql = `
       SELECT id_pelabuhan, nama_pelabuhan, alamat, latitude, longitude
-      FROM Pelabuhan
+      FROM pelabuhan
       WHERE id_pelabuhan = ?
     `;
 
@@ -83,7 +83,7 @@ export const createPelabuhan = async (req, res) => {
     }
 
     const insertSql = `
-      INSERT INTO Pelabuhan (nama_pelabuhan, lokasi, kapasitas, status)
+      INSERT INTO pelabuhan (nama_pelabuhan, lokasi, kapasitas, status)
       VALUES (?, ?, ?, ?)
     `;
 
@@ -124,7 +124,7 @@ export const updatePelabuhan = async (req, res) => {
     }
 
     const sql = `
-      UPDATE Pelabuhan
+      UPDATE pelabuhan
       SET nama_pelabuhan = ?, lokasi = ?, kapasitas = ?, status = ?
       WHERE id_pelabuhan = ?
     `;
@@ -162,7 +162,7 @@ export const deletePelabuhan = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const sql = `DELETE FROM Pelabuhan WHERE id_pelabuhan = ?`;
+    const sql = `DELETE FROM pelabuhan WHERE id_pelabuhan = ?`;
 
     db.query(sql, [id], (err, result) => {
       if (err) {

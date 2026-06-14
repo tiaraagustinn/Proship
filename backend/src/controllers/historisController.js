@@ -22,8 +22,8 @@ export const getHistoris = async (req, res) => {
         pa.nama_pelabuhan AS asal,
         pt.nama_pelabuhan AS tujuan,
         k.nama_kapal AS armada,
-        k.kapasitas_kapal,
-        ROUND((h.jmlh_penumpang / NULLIF(k.kapasitas_kapal, 0)) * 100, 2) AS load_factor
+        k.kapasitas_penumpang AS kapasitas_kapal,
+        ROUND((h.jmlh_penumpang / NULLIF(k.kapasitas_penumpang, 0)) * 100, 2) AS load_factor
       FROM historis_angkutan h
       LEFT JOIN jadwal_pelayaran j ON h.id_jadwal = j.id_jadwal
       LEFT JOIN rute_pelayaran r ON j.id_rute = r.id_rute

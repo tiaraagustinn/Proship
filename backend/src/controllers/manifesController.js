@@ -1,4 +1,4 @@
-﻿import db from '../config/db.js';
+import db from '../config/db.js';
 
 const query = (sql, params = []) =>
   new Promise((resolve, reject) =>
@@ -116,23 +116,59 @@ export const getDashboard = async (req, res) => {
     let whereClause = '';
     let params = [];
     if (from && to) {
-      whereClause = `WHERE DATE(timestamp_keberangkatan) BETWEEN ? AND ?`;
+      whereClause = `WHERE tanggal BETWEEN ? AND ?`;
       params = [from, to];
     } else if (from) {
-      whereClause = `WHERE DATE(timestamp_keberangkatan) >= ?`;
+      whereClause = `WHERE tanggal >= ?`;
       params = [from];
     } else if (to) {
-      whereClause = `WHERE DATE(timestamp_keberangkatan) <= ?`;
+      whereClause = `WHERE tanggal <= ?`;
       params = [to];
     }
 
-    const baseFrom = `FROM manifes_angkutan ${whereClause}`;
+    const cte = `
+      WITH AllManifes AS (
+        SELECT
+          jumlah_penumpang,
+          kendaraan_gol_II,
+          kendaraan_gol_IV,
+          jumlah_barang_ton,
+          timestamp_keberangkatan,
+          DATE(timestamp_keberangkatan) AS tanggal,
+          pelabuhan_asal COLLATE utf8mb4_unicode_ci AS asal,
+          tujuan COLLATE utf8mb4_unicode_ci AS tujuan,
+          nama_kapal COLLATE utf8mb4_unicode_ci AS armada
+        FROM manifes_angkutan
+        
+        UNION ALL
+        
+        SELECT
+          h.jmlh_penumpang AS jumlah_penumpang,
+          h.jmlh_kend_r2 AS kendaraan_gol_II,
+          h.jmlh_kend_r4 AS kendaraan_gol_IV,
+          h.berat_muatan AS jumlah_barang_ton,
+          TIMESTAMP(j.tanggal, j.waktu_berangkat) AS timestamp_keberangkatan,
+          j.tanggal AS tanggal,
+          pa.nama_pelabuhan COLLATE utf8mb4_unicode_ci AS asal,
+          pt.nama_pelabuhan COLLATE utf8mb4_unicode_ci AS tujuan,
+          k.nama_kapal COLLATE utf8mb4_unicode_ci AS armada
+        FROM historis_angkutan h
+        JOIN jadwal_pelayaran j ON h.id_jadwal = j.id_jadwal
+        LEFT JOIN rute_pelayaran r ON j.id_rute = r.id_rute
+        LEFT JOIN pelabuhan pa ON r.id_pelabuhan_asal = pa.id_pelabuhan
+        LEFT JOIN pelabuhan pt ON r.id_pelabuhan_tujuan = pt.id_pelabuhan
+        LEFT JOIN kapal k ON j.id_kapal = k.id_kapal
+      )
+    `;
+
+    const baseFrom = `FROM AllManifes ${whereClause}`;
 
     const [summary, byArah, kapalMonthly, trend] = await Promise.all([
 
       // Ringkasan total
       query(
-        `SELECT
+        `${cte}
+         SELECT
           COALESCE(SUM(jumlah_penumpang), 0)  AS total_penumpang,
           COALESCE(SUM(kendaraan_gol_II), 0)  AS total_kend_r2,
           COALESCE(SUM(kendaraan_gol_IV), 0)  AS total_kend_r4,
@@ -144,8 +180,9 @@ export const getDashboard = async (req, res) => {
 
       // Per arah (Ulee Lheue->Balohan vs Balohan->Ulee Lheue)
       query(
-        `SELECT
-          pelabuhan_asal AS asal,
+        `${cte}
+         SELECT
+          asal,
           tujuan,
           COALESCE(SUM(jumlah_penumpang), 0)  AS penumpang,
           COALESCE(SUM(kendaraan_gol_II), 0)  AS kend_r2,
@@ -153,26 +190,28 @@ export const getDashboard = async (req, res) => {
           COALESCE(SUM(jumlah_barang_ton), 0) AS muatan,
           COUNT(*) AS total_trip
         ${baseFrom}
-        GROUP BY pelabuhan_asal, tujuan`,
+        GROUP BY asal, tujuan`,
         params
       ),
 
       // Per kapal per bulan (grouped bar chart)
       query(
-        `SELECT
-          nama_kapal,
+        `${cte}
+         SELECT
+          armada AS nama_kapal,
           DATE_FORMAT(timestamp_keberangkatan, '%b %Y') AS bulan,
           DATE_FORMAT(timestamp_keberangkatan, '%Y-%m') AS sort_key,
           COALESCE(SUM(jumlah_penumpang), 0) AS penumpang
         ${baseFrom}
-        GROUP BY nama_kapal, bulan, sort_key
-        ORDER BY sort_key ASC, nama_kapal`,
+        GROUP BY armada, bulan, sort_key
+        ORDER BY sort_key ASC, armada`,
         params
       ),
 
       // Tren bulanan (area chart)
       query(
-        `SELECT
+        `${cte}
+         SELECT
           DATE_FORMAT(timestamp_keberangkatan, '%b %Y') AS bulan,
           DATE_FORMAT(timestamp_keberangkatan, '%Y-%m') AS sort_key,
           COALESCE(SUM(jumlah_penumpang), 0)  AS penumpang,

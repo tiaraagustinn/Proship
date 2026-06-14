@@ -21,7 +21,9 @@ export const getHistoris = async (req, res) => {
         j.jam,
         r.asal,
         r.tujuan,
-        k.nama_kapal AS armada
+        k.nama_kapal AS armada,
+        k.kapasitas_kapal,
+        ROUND((h.jmlh_penumpang / NULLIF(k.kapasitas_kapal, 0)) * 100, 2) AS load_factor
       FROM historis_angkutan h
       LEFT JOIN jadwal_pelayaran j ON h.id_jadwal = j.id_jadwal
       LEFT JOIN rute_pelayaran r ON j.id_rute = r.id_rute
@@ -57,7 +59,22 @@ export const createHistoris = async (req, res) => {
   }
 };
 
-// DELETE /api/historis/:id
+// PUT /api/historis/:id
+export const updateHistoris = async (req, res) => {
+  const { id } = req.params;
+  const { jmlh_penumpang, jmlh_kend_r2, jmlh_kend_r4, berat_muatan } = req.body;
+  try {
+    await query(
+      `UPDATE historis_angkutan SET jmlh_penumpang=?, jmlh_kend_r2=?, jmlh_kend_r4=?, berat_muatan=? WHERE id_historis=?`,
+      [jmlh_penumpang, jmlh_kend_r2 || 0, jmlh_kend_r4 || 0, berat_muatan || 0, id]
+    );
+    res.json({ success: true, message: 'Data historis berhasil diupdate' });
+  } catch (err) {
+    console.error('UPDATE HISTORIS ERROR:', err);
+    res.status(500).json({ error: 'Gagal mengupdate data historis', message: err.message });
+  }
+};
+
 export const deleteHistoris = async (req, res) => {
   const { id } = req.params;
   try {

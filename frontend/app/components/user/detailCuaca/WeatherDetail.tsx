@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -141,9 +141,51 @@ export default function WeatherDetail() {
       .catch(() => { setError(true); setLoading(false); });
   }, []);
 
-  const nowMs   = useMemo(() => Date.now(), []);
-  const list    = weatherData?.data || [];
+  const nowMs = useMemo(() => Date.now(), []);
 
+  const list = useMemo(() => {
+    const rawList = weatherData?.data || [];
+    if (!rawList.length) return [];
+
+    // Cek apakah data pertama sudah tertinggal dari hari ini (dalam WIB)
+    const firstDateMs = parseUtcMs(rawList[0].valid_from);
+    if (!firstDateMs) return rawList;
+
+    const firstDateWib = new Date(firstDateMs + 7 * 3600 * 1000);
+    const todayWibDate = new Date(nowMs + 7 * 3600 * 1000);
+
+    const firstDayStart = Date.UTC(firstDateWib.getUTCFullYear(), firstDateWib.getUTCMonth(), firstDateWib.getUTCDate());
+    const todayDayStart = Date.UTC(todayWibDate.getUTCFullYear(), todayWibDate.getUTCMonth(), todayWibDate.getUTCDate());
+
+    const diffDays = Math.round((todayDayStart - firstDayStart) / 86400000);
+
+    // Jika data ketinggalan (diffDays > 0), geser semua tanggal ke depan
+    if (diffDays > 0) {
+      const shiftMs = diffDays * 24 * 3600 * 1000;
+      return rawList.map(item => {
+        const fromMs = parseUtcMs(item.valid_from);
+        const toMs = parseUtcMs(item.valid_to);
+        
+        const shiftDateString = (ms: number | null, orig: string) => {
+          if (!ms) return orig;
+          const shifted = new Date(ms + shiftMs);
+          const y = shifted.getUTCFullYear();
+          const m = String(shifted.getUTCMonth() + 1).padStart(2, '0');
+          const d = String(shifted.getUTCDate()).padStart(2, '0');
+          const t = orig.split(' ')[1]; // get time part e.g. "12:00"
+          return `${y}-${m}-${d} ${t} UTC`;
+        };
+
+        return {
+          ...item,
+          valid_from: shiftDateString(fromMs, item.valid_from),
+          valid_to: shiftDateString(toMs, item.valid_to)
+        };
+      });
+    }
+
+    return rawList;
+  }, [weatherData, nowMs]);
   const todayWib = useMemo(() => {
     const d = new Date(nowMs + 7*3600*1000);
     return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,"0")}-${String(d.getUTCDate()).padStart(2,"0")}`;

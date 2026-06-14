@@ -17,7 +17,7 @@ function formatTanggal(raw: string): string {
 }
 
 interface ManifesData {
-  id: number;
+  id: string;
   tanggal: string;
   asal: string;
   tujuan: string;
@@ -34,13 +34,13 @@ export default function HistorisPelayaranPage() {
   const { setTitle } = usePageTitle();
   const [manifesData, setManifesData] = useState<ManifesData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<{
     jmlh_penumpang: number;
     jmlh_kend_r2: number;
@@ -59,7 +59,7 @@ export default function HistorisPelayaranPage() {
     setLoading(true);
     fetch(API_BASE + '/historis')
       .then(res => res.json())
-      .then(data => { if (data.success) setManifesData(data.data.map((h: { id_historis: number; tanggal: string; asal: string; tujuan: string; jmlh_penumpang: number; jmlh_kend_r2: number; jmlh_kend_r4: number; berat_muatan: number; armada: string; load_factor: number; kapasitas_kapal: number }) => ({ ...h, id: h.id_historis }))); })
+      .then(data => { if (data.success) setManifesData(data.data.map((h: { id_historis: string; tanggal: string; asal: string; tujuan: string; jmlh_penumpang: number; jmlh_kend_r2: number; jmlh_kend_r4: number; berat_muatan: number; armada: string; load_factor: number; kapasitas_kapal: number }) => ({ ...h, id: h.id_historis }))); })
       .catch(err => console.error('Gagal fetch historis:', err))
       .finally(() => setLoading(false));
   };
@@ -96,7 +96,7 @@ export default function HistorisPelayaranPage() {
     setSelectAll(!selectAll);
   };
 
-  const handleSelectRow = (id: number) => {
+  const handleSelectRow = (id: string) => {
     if (selectedIds.includes(id)) { setSelectedIds(selectedIds.filter(s => s !== id)); }
     else { setSelectedIds([...selectedIds, id]); }
   };
@@ -125,7 +125,7 @@ export default function HistorisPelayaranPage() {
     } catch { alert('Terjadi kesalahan koneksi'); }
   };
 
-  const handleDelete = (id: number) => { setDeletingId(id); setIsDeleteModalOpen(true); };
+  const handleDelete = (id: string) => { setDeletingId(id); setIsDeleteModalOpen(true); };
 
   const handleConfirmDelete = async () => {
     if (!deletingId) return;

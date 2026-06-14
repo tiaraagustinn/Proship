@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -17,34 +17,35 @@ function formatTanggal(raw: string): string {
 }
 
 interface ManifesData {
-  id: number;
-  timestamp_keberangkatan: string;
-  nama_kapal: string;
-  pelabuhan_asal: string;
+  id: string;
+  tanggal: string;
+  asal: string;
   tujuan: string;
-  jumlah_penumpang: number;
-  kendaraanRoda2: number;
-  kendaraanRoda4: number;
-  beratMuatan: number;
+  jmlh_penumpang: number;
+  jmlh_kend_r2: number;
+  jmlh_kend_r4: number;
+  berat_muatan: number;
+  armada: string;
   load_factor: number;
+  kapasitas_kapal: number;
 }
 
 export default function HistorisPelayaranPage() {
   const { setTitle } = usePageTitle();
   const [manifesData, setManifesData] = useState<ManifesData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<{
-    jumlah_penumpang: number;
-    kendaraan_gol_II: number;
-    kendaraan_gol_IV: number;
-    jumlah_barang_ton: number;
+    jmlh_penumpang: number;
+    jmlh_kend_r2: number;
+    jmlh_kend_r4: number;
+    berat_muatan: number;
   } | null>(null);
 
   // Filter state
@@ -56,10 +57,10 @@ export default function HistorisPelayaranPage() {
 
   const fetchManifes = () => {
     setLoading(true);
-    fetch(API_BASE + '/manifes')
+    fetch(API_BASE + '/historis')
       .then(res => res.json())
-      .then(data => { if (data.success) setManifesData(data.data); })
-      .catch(err => console.error('Gagal fetch manifes:', err))
+      .then(data => { if (data.success) setManifesData(data.data.map((h: { id_historis: string; tanggal: string; asal: string; tujuan: string; jmlh_penumpang: number; jmlh_kend_r2: number; jmlh_kend_r4: number; berat_muatan: number; armada: string; load_factor: number; kapasitas_kapal: number }) => ({ ...h, id: h.id_historis }))); })
+      .catch(err => console.error('Gagal fetch historis:', err))
       .finally(() => setLoading(false));
   };
 
@@ -67,21 +68,21 @@ export default function HistorisPelayaranPage() {
 
   // Derived filter options
   const tahunOptions = useMemo(() =>
-    [...new Set(manifesData.map(d => d.timestamp_keberangkatan.substring(0, 4)))].sort().reverse()
+    [...new Set(manifesData.map(d => d.tanggal ? d.tanggal.substring(0, 4) : ''))].filter(Boolean).sort().reverse()
   , [manifesData]);
 
   const ruteOptions = useMemo(() =>
-    [...new Set(manifesData.map(d => `${d.pelabuhan_asal} → ${d.tujuan}`))].sort()
+    [...new Set(manifesData.map(d => `${d.asal} → ${d.tujuan}`))].sort()
   , [manifesData]);
 
   // Filtered data
   const filteredData = useMemo(() => {
     return manifesData.filter(item => {
-      const date = item.timestamp_keberangkatan.substring(0, 10);
+      const date = item.tanggal ? item.tanggal.substring(0, 10) : '';
       const [year, month] = date.split('-');
       if (filterTahun && year !== filterTahun) return false;
       if (filterBulan && parseInt(month) !== parseInt(filterBulan)) return false;
-      if (filterRute && `${item.pelabuhan_asal} → ${item.tujuan}` !== filterRute) return false;
+      if (filterRute && `${item.asal} → ${item.tujuan}` !== filterRute) return false;
       return true;
     });
   }, [manifesData, filterTahun, filterBulan, filterRute]);
@@ -95,17 +96,17 @@ export default function HistorisPelayaranPage() {
     setSelectAll(!selectAll);
   };
 
-  const handleSelectRow = (id: number) => {
+  const handleSelectRow = (id: string) => {
     if (selectedIds.includes(id)) { setSelectedIds(selectedIds.filter(s => s !== id)); }
     else { setSelectedIds([...selectedIds, id]); }
   };
 
   const handleEdit = (item: ManifesData) => {
     setEditForm({
-      jumlah_penumpang: item.jumlah_penumpang,
-      kendaraan_gol_II: item.kendaraanRoda2,
-      kendaraan_gol_IV: item.kendaraanRoda4,
-      jumlah_barang_ton: item.beratMuatan,
+      jmlh_penumpang: item.jmlh_penumpang,
+      jmlh_kend_r2: item.jmlh_kend_r2,
+      jmlh_kend_r4: item.jmlh_kend_r4,
+      berat_muatan: item.berat_muatan,
     });
     setEditingId(item.id);
     setIsEditModalOpen(true);
@@ -114,7 +115,7 @@ export default function HistorisPelayaranPage() {
   const handleSaveEdit = async () => {
     if (!editForm || !editingId) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/manifes/${editingId}`, {
+      const res = await fetch(`${API_BASE}/historis/${editingId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editForm),
@@ -124,12 +125,12 @@ export default function HistorisPelayaranPage() {
     } catch { alert('Terjadi kesalahan koneksi'); }
   };
 
-  const handleDelete = (id: number) => { setDeletingId(id); setIsDeleteModalOpen(true); };
+  const handleDelete = (id: string) => { setDeletingId(id); setIsDeleteModalOpen(true); };
 
   const handleConfirmDelete = async () => {
     if (!deletingId) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/manifes/${deletingId}`, { method: 'DELETE' });
+      const res = await fetch(`${API_BASE}/historis/${deletingId}`, { method: 'DELETE' });
       if (res.ok) { setIsDeleteModalOpen(false); setDeletingId(null); setSelectedIds(selectedIds.filter(id => id !== deletingId)); fetchManifes(); }
       else alert('Gagal menghapus data');
     } catch { alert('Terjadi kesalahan koneksi'); }
@@ -141,10 +142,10 @@ export default function HistorisPelayaranPage() {
       : filteredData;
     const headers = ['Tanggal','Keberangkatan','Tujuan','Penumpang','Roda 2','Roda 4','Muatan (ton)','Armada','Load Factor (%)'];
     const rows = exportData.map(item => [
-      item.timestamp_keberangkatan.substring(0, 10),
-      item.pelabuhan_asal, item.tujuan,
-      item.jumlah_penumpang, item.kendaraanRoda2, item.kendaraanRoda4,
-      item.beratMuatan, item.nama_kapal, item.load_factor
+      item.tanggal ? item.tanggal.substring(0, 10) : '-',
+      item.asal, item.tujuan,
+      item.jmlh_penumpang, item.jmlh_kend_r2, item.jmlh_kend_r4,
+      item.berat_muatan, item.armada, item.load_factor
     ]);
     const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -236,15 +237,15 @@ export default function HistorisPelayaranPage() {
                     <td className="p-4">
                       <input type="checkbox" checked={selectedIds.includes(item.id)} onChange={() => handleSelectRow(item.id)} className="w-4 h-4 cursor-pointer" />
                     </td>
-                    <td className="p-4 text-gray-700">{formatTanggal(item.timestamp_keberangkatan)}</td>
-                    <td className="p-4 text-gray-700">{item.pelabuhan_asal}</td>
+                    <td className="p-4 text-gray-700">{formatTanggal(item.tanggal)}</td>
+                    <td className="p-4 text-gray-700">{item.asal}</td>
                     <td className="p-4 text-gray-700">{item.tujuan}</td>
-                    <td className="p-4 text-gray-700">{item.jumlah_penumpang}</td>
-                    <td className="p-4 text-gray-700">{item.kendaraanRoda2}</td>
-                    <td className="p-4 text-gray-700">{item.kendaraanRoda4}</td>
-                    <td className="p-4 text-gray-700">{item.beratMuatan}</td>
-                    <td className="p-4 text-gray-700">{item.nama_kapal}</td>
-                    <td className="p-4 text-gray-700">{item.load_factor}%</td>
+                    <td className="p-4 text-gray-700">{item.jmlh_penumpang}</td>
+                    <td className="p-4 text-gray-700">{item.jmlh_kend_r2}</td>
+                    <td className="p-4 text-gray-700">{item.jmlh_kend_r4}</td>
+                    <td className="p-4 text-gray-700">{item.berat_muatan}</td>
+                    <td className="p-4 text-gray-700">{item.armada || '-'}</td>
+                    <td className="p-4 text-gray-700">{item.load_factor != null ? `${item.load_factor}%` : '-'}</td>
                     <td className="p-4">
                       <div className="flex justify-center gap-2">
                         <button onClick={() => handleEdit(item)} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition" title="Edit">
@@ -300,13 +301,13 @@ export default function HistorisPelayaranPage() {
           <div className="bg-white p-6 rounded-xl w-full max-w-[420px] shadow-2xl">
             <h2 className="text-lg font-semibold mb-4">Edit Data Historis</h2>
             <label className="block text-sm text-gray-600 mb-1">Jumlah Penumpang</label>
-            <input type="number" value={editForm.jumlah_penumpang} onChange={e => setEditForm({ ...editForm, jumlah_penumpang: Number(e.target.value) })} className="w-full mb-3 p-2 border rounded" min="0" />
-            <label className="block text-sm text-gray-600 mb-1">Kendaraan Roda 2 (Gol. II)</label>
-            <input type="number" value={editForm.kendaraan_gol_II} onChange={e => setEditForm({ ...editForm, kendaraan_gol_II: Number(e.target.value) })} className="w-full mb-3 p-2 border rounded" min="0" />
-            <label className="block text-sm text-gray-600 mb-1">Kendaraan Roda 4 (Gol. IV)</label>
-            <input type="number" value={editForm.kendaraan_gol_IV} onChange={e => setEditForm({ ...editForm, kendaraan_gol_IV: Number(e.target.value) })} className="w-full mb-3 p-2 border rounded" min="0" />
+            <input type="number" value={editForm.jmlh_penumpang} onChange={e => setEditForm({ ...editForm, jmlh_penumpang: Number(e.target.value) })} className="w-full mb-3 p-2 border rounded" min="0" />
+            <label className="block text-sm text-gray-600 mb-1">Kendaraan Roda 2</label>
+            <input type="number" value={editForm.jmlh_kend_r2} onChange={e => setEditForm({ ...editForm, jmlh_kend_r2: Number(e.target.value) })} className="w-full mb-3 p-2 border rounded" min="0" />
+            <label className="block text-sm text-gray-600 mb-1">Kendaraan Roda 4</label>
+            <input type="number" value={editForm.jmlh_kend_r4} onChange={e => setEditForm({ ...editForm, jmlh_kend_r4: Number(e.target.value) })} className="w-full mb-3 p-2 border rounded" min="0" />
             <label className="block text-sm text-gray-600 mb-1">Berat Muatan (ton)</label>
-            <input type="number" step="0.01" value={editForm.jumlah_barang_ton} onChange={e => setEditForm({ ...editForm, jumlah_barang_ton: Number(e.target.value) })} className="w-full mb-4 p-2 border rounded" min="0" />
+            <input type="number" step="0.01" value={editForm.berat_muatan} onChange={e => setEditForm({ ...editForm, berat_muatan: Number(e.target.value) })} className="w-full mb-4 p-2 border rounded" min="0" />
             <div className="flex justify-end gap-2">
               <button onClick={() => { setIsEditModalOpen(false); setEditingId(null); setEditForm(null); }} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 transition">Batal</button>
               <button onClick={handleSaveEdit} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">Simpan</button>

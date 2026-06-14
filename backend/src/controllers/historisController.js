@@ -10,7 +10,7 @@ export const getHistoris = async (req, res) => {
   try {
     const sql = `
       SELECT
-        h.id_historis,
+        CONCAT('H', h.id_historis) AS id_historis,
         h.id_jadwal,
         h.id_petugas,
         h.berat_muatan,
@@ -30,7 +30,27 @@ export const getHistoris = async (req, res) => {
       LEFT JOIN pelabuhan pa ON r.id_pelabuhan_asal = pa.id_pelabuhan
       LEFT JOIN pelabuhan pt ON r.id_pelabuhan_tujuan = pt.id_pelabuhan
       LEFT JOIN kapal k ON j.id_kapal = k.id_kapal
-      ORDER BY h.id_historis DESC
+
+      UNION ALL
+
+      SELECT
+        CONCAT('M', id) AS id_historis,
+        NULL AS id_jadwal,
+        NULL AS id_petugas,
+        jumlah_barang_ton AS berat_muatan,
+        jumlah_penumpang AS jmlh_penumpang,
+        kendaraan_gol_II AS jmlh_kend_r2,
+        kendaraan_gol_IV AS jmlh_kend_r4,
+        DATE(timestamp_keberangkatan) AS tanggal,
+        TIME(timestamp_keberangkatan) AS jam,
+        pelabuhan_asal AS asal,
+        tujuan AS tujuan,
+        nama_kapal AS armada,
+        kapasitas_kapal AS kapasitas_kapal,
+        load_factor
+      FROM manifes_angkutan
+      
+      ORDER BY tanggal DESC
     `;
     const data = await query(sql);
     res.json({ success: true, data });
@@ -65,11 +85,21 @@ export const createHistoris = async (req, res) => {
 export const updateHistoris = async (req, res) => {
   const { id } = req.params;
   const { jmlh_penumpang, jmlh_kend_r2, jmlh_kend_r4, berat_muatan } = req.body;
+  
   try {
-    await query(
-      `UPDATE historis_angkutan SET jmlh_penumpang=?, jmlh_kend_r2=?, jmlh_kend_r4=?, berat_muatan=? WHERE id_historis=?`,
-      [jmlh_penumpang, jmlh_kend_r2 || 0, jmlh_kend_r4 || 0, berat_muatan || 0, id]
-    );
+    if (id.startsWith('M')) {
+      const realId = id.substring(1);
+      await query(
+        `UPDATE manifes_angkutan SET jumlah_penumpang=?, kendaraan_gol_II=?, kendaraan_gol_IV=?, jumlah_barang_ton=? WHERE id=?`,
+        [jmlh_penumpang, jmlh_kend_r2 || 0, jmlh_kend_r4 || 0, berat_muatan || 0, realId]
+      );
+    } else {
+      const realId = id.startsWith('H') ? id.substring(1) : id;
+      await query(
+        `UPDATE historis_angkutan SET jmlh_penumpang=?, jmlh_kend_r2=?, jmlh_kend_r4=?, berat_muatan=? WHERE id_historis=?`,
+        [jmlh_penumpang, jmlh_kend_r2 || 0, jmlh_kend_r4 || 0, berat_muatan || 0, realId]
+      );
+    }
     res.json({ success: true, message: 'Data historis berhasil diupdate' });
   } catch (err) {
     console.error('UPDATE HISTORIS ERROR:', err);
@@ -80,7 +110,13 @@ export const updateHistoris = async (req, res) => {
 export const deleteHistoris = async (req, res) => {
   const { id } = req.params;
   try {
-    await query(`DELETE FROM historis_angkutan WHERE id_historis = ?`, [id]);
+    if (id.startsWith('M')) {
+      const realId = id.substring(1);
+      await query(`DELETE FROM manifes_angkutan WHERE id=?`, [realId]);
+    } else {
+      const realId = id.startsWith('H') ? id.substring(1) : id;
+      await query(`DELETE FROM historis_angkutan WHERE id_historis=?`, [realId]);
+    }
     res.json({ success: true, message: 'Data historis berhasil dihapus' });
   } catch (err) {
     console.error('DELETE HISTORIS ERROR:', err);

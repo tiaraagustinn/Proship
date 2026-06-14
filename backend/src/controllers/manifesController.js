@@ -1,4 +1,4 @@
-import db from '../config/db.js';
+﻿import db from '../config/db.js';
 
 const query = (sql, params = []) =>
   new Promise((resolve, reject) =>

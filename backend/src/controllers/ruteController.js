@@ -1,4 +1,4 @@
-import db from '../config/db.js';
+﻿import db from '../config/db.js';
 
 // Get all rute
 export const getAllRute = async (req, res) => {
@@ -12,7 +12,7 @@ export const getAllRute = async (req, res) => {
         r.jarak_tempuh,
         r.created_at,
         r.updated_at
-      FROM Rute_Pelayaran r
+      FROM rute_pelayaran r
       LEFT JOIN Pelabuhan p1 ON r.id_pelabuhan_asal = p1.id_pelabuhan
       LEFT JOIN Pelabuhan p2 ON r.id_pelabuhan_tujuan = p2.id_pelabuhan
       ORDER BY r.id_rute DESC
@@ -56,7 +56,7 @@ export const getRuteById = async (req, res) => {
         r.jarak_tempuh,
         r.created_at,
         r.updated_at
-      FROM Rute_Pelayaran r
+      FROM rute_pelayaran r
       LEFT JOIN Pelabuhan p1 ON r.id_pelabuhan_asal = p1.id_pelabuhan
       LEFT JOIN Pelabuhan p2 ON r.id_pelabuhan_tujuan = p2.id_pelabuhan
       WHERE r.id_rute = ?
@@ -109,7 +109,7 @@ export const createRute = async (req, res) => {
     }
 
     const insertSql = `
-      INSERT INTO Rute_Pelayaran (id_pelabuhan_asal, id_pelabuhan_tujuan, jarak_tempuh)
+      INSERT INTO rute_pelayaran (id_pelabuhan_asal, id_pelabuhan_tujuan, jarak_tempuh)
       VALUES (?, ?, ?)
     `;
 
@@ -156,7 +156,7 @@ export const updateRute = async (req, res) => {
     }
 
     const sql = `
-      UPDATE Rute_Pelayaran
+      UPDATE rute_pelayaran
       SET id_pelabuhan_asal = ?, id_pelabuhan_tujuan = ?, jarak_tempuh = ?
       WHERE id_rute = ?
     `;
@@ -194,7 +194,7 @@ export const deleteRute = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const sql = `DELETE FROM Rute_Pelayaran WHERE id_rute = ?`;
+    const sql = `DELETE FROM rute_pelayaran WHERE id_rute = ?`;
 
     db.query(sql, [id], (err, result) => {
       if (err) {

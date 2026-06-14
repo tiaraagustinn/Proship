@@ -1,4 +1,4 @@
-import db from '../config/db.js';
+﻿import db from '../config/db.js';
 import { evalMamdani } from '../utils/fuzzyMamdani.js';
 import { getBmkgEntryForTime } from './bmkgCacheService.js';
 

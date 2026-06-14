@@ -36,9 +36,9 @@ export default function AdminDashboardPage() {
     const fetchStats = async () => {
       try {
         const [petugasRes, pelabuhanRes, kapalRes] = await Promise.all([
-          fetch('http://localhost:5000/api/petugas'),
-          fetch('http://localhost:5000/api/pelabuhan'),
-          fetch('http://localhost:5000/api/kapal'),
+          fetch(${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/petugas'),
+          fetch(${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/pelabuhan'),
+          fetch(${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/kapal'),
         ]);
         const petugasJson = await petugasRes.json();
         const pelabuhanJson = await pelabuhanRes.json();

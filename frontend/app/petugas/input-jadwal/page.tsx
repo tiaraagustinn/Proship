@@ -12,7 +12,7 @@ function formatTanggal(raw: string): string {
   return `${day}/${month}/${year}`;
 }
 
-const API = 'http://localhost:5000/api';
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 interface JadwalData {
   id_jadwal: number;

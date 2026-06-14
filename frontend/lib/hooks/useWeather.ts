@@ -71,7 +71,7 @@ export const useWeather = (endpoint: string) => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const apiUrl = `http://localhost:5000/api/weather/${endpoint}`;
+        const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/weather/${endpoint}`;
         
         console.log(`🔄 Fetching dari: ${apiUrl}`);
         

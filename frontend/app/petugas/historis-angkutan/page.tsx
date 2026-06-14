@@ -54,7 +54,7 @@ export default function HistorisPelayaranPage() {
 
   const fetchManifes = () => {
     setLoading(true);
-    fetch('http://localhost:5000/api/manifes')
+    fetch(${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/manifes')
       .then(res => res.json())
       .then(data => { if (data.success) setManifesData(data.data); })
       .catch(err => console.error('Gagal fetch manifes:', err))

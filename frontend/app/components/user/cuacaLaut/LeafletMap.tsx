@@ -134,7 +134,7 @@ export default function LeafletMap() {
   const [lastUpdated, setLastUpdated] = useState('');
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/maritim-weather/sabang-bandaAceh')
+    fetch(${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/maritim-weather/sabang-bandaAceh')
       .then(r => r.json())
       .then(data => {
         // Gabungkan forecast_day1 dan forecast_day2-4 dari struktur API BMKG Maritim baru

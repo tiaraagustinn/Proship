@@ -123,7 +123,7 @@ const WeatherForecastSection = () => {
     try {
       setLoading(true);
       setError(null);
-      const res = await fetch('http://localhost:5000/api/maritim-weather/sabang-bandaAceh');
+      const res = await fetch(${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/maritim-weather/sabang-bandaAceh');
       if (!res.ok) throw new Error('Gagal mengambil data');
       const data = await res.json();
 

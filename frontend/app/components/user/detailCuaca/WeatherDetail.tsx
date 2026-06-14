@@ -133,7 +133,7 @@ export default function WeatherDetail() {
   const [error, setError]      = useState(false);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/detail/detail-cuaca")
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/detail/detail-cuaca")
       .then(r => r.json())
       .then(d => { setWeatherData(d); setLoading(false); })
       .catch(() => { setError(true); setLoading(false); });

@@ -279,7 +279,7 @@ function PageContent() {
         .catch(err => setError(err.message))
         .finally(() => setLoading(false));
     } else {
-      fetch('http://localhost:5000/api/fuzzy/evaluate')
+      fetch(${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/fuzzy/evaluate')
         .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
         .then(data => setFallback({
           inputs: data.inputs ?? null,

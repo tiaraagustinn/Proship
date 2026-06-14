@@ -54,9 +54,9 @@ export default function DashboardPage() {
     const fetchStats = async () => {
       try {
         const [pelabuhanRes, kapalRes, historisRes] = await Promise.all([
-          fetch('http://localhost:5000/api/pelabuhan'),
-          fetch('http://localhost:5000/api/kapal'),
-          fetch('http://localhost:5000/api/historis'),
+          fetch(${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/pelabuhan'),
+          fetch(${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/kapal'),
+          fetch(${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/historis'),
         ]);
         const pelabuhanJson = await pelabuhanRes.json();
         const kapalJson = await kapalRes.json();

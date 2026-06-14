@@ -4,7 +4,7 @@ import { useState, FormEvent, ChangeEvent, useEffect } from 'react';
 import { usePageTitle } from '@/app/petugas/layout';
 import { CheckCircle, XCircle, Ship, MapPin, Clock } from 'lucide-react';
 
-const API = 'http://localhost:5000/api';
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 interface JadwalOption {
   id_jadwal: number;

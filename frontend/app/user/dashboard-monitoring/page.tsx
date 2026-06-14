@@ -11,7 +11,7 @@ import {
 import "react-datepicker/dist/react-datepicker.css";
 import { useState, useEffect, useCallback } from "react";
 
-const API = "http://localhost:5000/api";
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 const PIE_COLORS  = ["#22c55e", "#0369a1"];
 const BAR_COLORS  = ["#0ea5e9", "#f59e0b", "#10b981", "#8b5cf6", "#ef4444", "#f97316"];
 

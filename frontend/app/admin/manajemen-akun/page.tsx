@@ -13,7 +13,7 @@ interface AkunPetugas {
   status: 'aktif' | 'nonaktif';
 }
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 export default function ManajemenAkunPage() {
   const { setTitle } = usePageTitle();

@@ -19,9 +19,9 @@ export const getHistoris = async (req, res) => {
         h.jmlh_kend_r4,
         j.tanggal,
         j.waktu_berangkat AS jam,
-        pa.nama_pelabuhan AS asal,
-        pt.nama_pelabuhan AS tujuan,
-        k.nama_kapal AS armada,
+        pa.nama_pelabuhan COLLATE utf8mb4_unicode_ci AS asal,
+        pt.nama_pelabuhan COLLATE utf8mb4_unicode_ci AS tujuan,
+        k.nama_kapal COLLATE utf8mb4_unicode_ci AS armada,
         k.kapasitas_penumpang AS kapasitas_kapal,
         ROUND((h.jmlh_penumpang / NULLIF(k.kapasitas_penumpang, 0)) * 100, 2) AS load_factor
       FROM historis_angkutan h

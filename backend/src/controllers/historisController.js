@@ -18,15 +18,17 @@ export const getHistoris = async (req, res) => {
         h.jmlh_kend_r2,
         h.jmlh_kend_r4,
         j.tanggal,
-        j.jam,
-        r.asal,
-        r.tujuan,
+        j.waktu_berangkat AS jam,
+        pa.nama_pelabuhan AS asal,
+        pt.nama_pelabuhan AS tujuan,
         k.nama_kapal AS armada,
         k.kapasitas_kapal,
         ROUND((h.jmlh_penumpang / NULLIF(k.kapasitas_kapal, 0)) * 100, 2) AS load_factor
       FROM historis_angkutan h
       LEFT JOIN jadwal_pelayaran j ON h.id_jadwal = j.id_jadwal
       LEFT JOIN rute_pelayaran r ON j.id_rute = r.id_rute
+      LEFT JOIN pelabuhan pa ON r.id_pelabuhan_asal = pa.id_pelabuhan
+      LEFT JOIN pelabuhan pt ON r.id_pelabuhan_tujuan = pt.id_pelabuhan
       LEFT JOIN kapal k ON j.id_kapal = k.id_kapal
       ORDER BY h.id_historis DESC
     `;

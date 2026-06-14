@@ -16,15 +16,15 @@ function nudgeIfOnBreak(val, breaks) {
 
 function normalizeInputs(entry) {
   // API BMKG: wave_height (m), wind_speed (knot), current_speed (KNOT → cm/s)
-  const wave    = Number(entry.wave_height    ?? entry.wave_max    ?? entry.wave ?? 0);
-  const wind    = Number(entry.wind_speed     ?? entry.wind_speed_max            ?? 0);
+  const wave = Number(entry.wave_height ?? entry.wave_max ?? entry.wave ?? 0);
+  const wind = Number(entry.wind_speed ?? entry.wind_speed_max ?? 0);
   // current_speed dari BMKG dalam satuan KM/H (km/j), konversi ke cm/s: 1 km/h = 27.7778 cm/s
-  const current = Number(entry.current_speed  ?? entry.current_speed_max         ?? 0) * 27.7778;
+  const current = Number(entry.current_speed ?? entry.current_speed_max ?? 0) * 27.7778;
 
   return {
-    wave:    nudgeIfOnBreak(wave,    [1.25, 2.5, 4.0]),
-    wind:    nudgeIfOnBreak(wind,    [10, 20, 30]),
-    current: nudgeIfOnBreak(current, [25, 75]),
+    wave: nudgeIfOnBreak(wave, [1.25, 1.75, 2.0, 2.5, 2.75, 3.0]),   // Titik patah MFs wave
+    wind: nudgeIfOnBreak(wind, [8.0, 10.0, 15.0, 20.0, 22.0, 25.0]), // Titik patah MFs wind
+    current: nudgeIfOnBreak(current, [15.0, 25.0, 40.0, 55.0, 60.0, 70.0]),// Titik patah MFs arus
     raw: entry,
   };
 }

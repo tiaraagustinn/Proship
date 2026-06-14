@@ -30,21 +30,30 @@ async function createCuacaFromBMKG(tanggal, jam) {
   const entry = await getBmkgEntryForTime('sabang-bandaAceh', tanggal, jam);
   if (!entry) return null;
 
-  // Baca field dari API BMKG baru:
-  // wave_height   → meter (m)
-  // wind_speed    → knot (kt)
-  // current_speed → KM/H (km/j) → dikonversi ke cm/s (1 km/h = 27.7778 cm/s)
-  const waveM   = parseFloat(entry.wave_height)   || 0;
-  const windKt  = parseFloat(entry.wind_speed)     || 0;
+  // Baca field dari API BMKG (endpoint P.A.04 / marine2026-data):
+  //   wave_height   → meter (m)
+  //   wind_speed    → knot (kt)            ← satuan maritim standar BMKG
+  //   current_speed → km/jam (km/h)        ← BMKG menggunakan km/h untuk arus
+  //
+  // Konversi ke satuan yang dipakai fuzzy Mamdani (m, knot, cm/s):
+  //   waveM   : langsung dalam meter, tidak perlu konversi
+  //   windKt  : langsung dalam knot
+  //   currCms : km/h → cm/s  (1 km/h = 27.7778 cm/s)
+  const waveM   = parseFloat(entry.wave_height)   || 0;           // meter
+  const windKt  = parseFloat(entry.wind_speed)     || 0;           // knot
   const currCms = (parseFloat(entry.current_speed) || 0) * 27.7778; // km/h → cm/s
 
-  // Jalankan fuzzy Mamdani: satuan (m, knot, cm/s)
+  // Jalankan fuzzy Mamdani dengan input (m, knot, cm/s)
   const fuzzy = evalMamdani(waveM, windKt, currCms);
 
-  // Simpan ke DB dengan konversi ke satuan kecil agar muat kolom decimal(3,2)
-  const kecAngin = Math.min(parseFloat((windKt  * 0.514).toFixed(2)), 9.99);
-  const kecArus  = Math.min(parseFloat((currCms / 100  ).toFixed(2)), 9.99);
-  const tinggi   = Math.min(parseFloat(waveM.toFixed(2)),             9.99);
+  // Simpan ke DB:
+  //   kec_angin        : knot → m/s  (1 kt = 0.514 m/s), cap 9.99 agar muat decimal(3,2)
+  //   kec_arus         : cm/s → m/s  (/100),              cap 9.99
+  //   tinggi_gelombang : meter,                            cap 9.99
+  //   input_*          : nilai mentah yang dipakai fuzzy (m, knot, cm/s) untuk audit/tampilan
+  const kecAngin = Math.min(parseFloat((windKt  * 0.514).toFixed(2)), 9.99); // m/s
+  const kecArus  = Math.min(parseFloat((currCms / 100  ).toFixed(2)), 9.99); // m/s
+  const tinggi   = Math.min(parseFloat(waveM.toFixed(2)),             9.99); // m
 
   // Metadata kondisi cuaca dari entry
   const cuacaStr   = entry.weather || entry.weather_desc || '';

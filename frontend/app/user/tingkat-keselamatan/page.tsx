@@ -63,7 +63,7 @@ const CATEGORY_CONFIG: Record<CategoryKey, {
     textLight: 'text-emerald-600 dark:text-emerald-500',
     badge: 'bg-emerald-500',
     icon: '🟢',
-    desc: 'Kondisi perairan sangat bersahabat dan aman untuk semua kapal.',
+    desc: 'Kondisi perairan sangat bersahabat dan aman untuk kapal besar.',
     gradient: 'from-emerald-500 via-teal-500 to-emerald-600',
     glow: 'shadow-emerald-500/20',
     bgGlow: 'bg-emerald-500/10',
@@ -110,9 +110,9 @@ const DEFAULT_CONFIG = {
 function normalizeCategory(raw: string | null | undefined): string | null {
   if (!raw) return null;
   const up = raw.toUpperCase();
-  if (up.includes('AMAN'))    return 'AMAN';
+  if (up.includes('AMAN')) return 'AMAN';
   if (up.includes('WASPADA')) return 'WASPADA';
-  if (up.includes('BAHAYA'))  return 'BAHAYA';
+  if (up.includes('BAHAYA')) return 'BAHAYA';
   return null;
 }
 
@@ -136,7 +136,7 @@ function RouteIllustration({ asal, tujuan }: { asal: string; tujuan: string }) {
     <div className="relative w-full py-4 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 flex items-center justify-between px-6 overflow-hidden mt-4 shadow-inner">
       {/* Background soft lighting */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-16 bg-blue-500/10 blur-2xl rounded-full pointer-events-none" />
-      
+
       <div className="z-10 flex flex-col text-left">
         <span className="text-[9px] text-white/55 uppercase tracking-widest font-extrabold flex items-center gap-1">
           ⚓ Asal
@@ -154,7 +154,7 @@ function RouteIllustration({ asal, tujuan }: { asal: string; tujuan: string }) {
           </div>
         </div>
       </div>
-      
+
       <div className="z-10 flex flex-col text-right items-end">
         <span className="text-[9px] text-white/55 uppercase tracking-widest font-extrabold flex items-center gap-1">
           🏁 Tujuan
@@ -167,7 +167,7 @@ function RouteIllustration({ asal, tujuan }: { asal: string; tujuan: string }) {
 
 function CircularGauge({ score, category, isEstimasi }: { score: number | null; category: string | null; isEstimasi: boolean }) {
   const value = score != null ? Math.min(Math.max(score, 0), 100) : 0;
-  
+
   // SVG Configurations
   const radius = 64;
   const strokeWidth = 10;
@@ -178,7 +178,7 @@ function CircularGauge({ score, category, isEstimasi }: { score: number | null; 
   const arcLength = circumference * 0.75;
   const strokeDasharray = `${arcLength} ${circumference}`;
   const strokeDashoffset = arcLength - (value / 100) * arcLength;
-  
+
   const colors = {
     AMAN: { stroke: 'stroke-emerald-500', glow: 'drop-shadow-[0_0_12px_rgba(16,185,129,0.45)]', text: 'text-emerald-500', textLight: 'text-emerald-600' },
     WASPADA: { stroke: 'stroke-amber-500', glow: 'drop-shadow-[0_0_12px_rgba(245,158,11,0.45)]', text: 'text-amber-500', textLight: 'text-amber-600' },
@@ -194,7 +194,7 @@ function CircularGauge({ score, category, isEstimasi }: { score: number | null; 
       <div className="absolute -bottom-10 -left-10 w-28 h-28 bg-slate-50 rounded-full blur-2xl pointer-events-none" />
 
       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-5">Indeks Keselamatan</p>
-      
+
       <div className="relative" style={{ width: sqSize, height: sqSize }}>
         <svg className="w-full h-full transform rotate-[135deg]" viewBox={`0 0 ${sqSize} ${sqSize}`}>
           {/* Gray background track */}
@@ -219,7 +219,7 @@ function CircularGauge({ score, category, isEstimasi }: { score: number | null; 
             strokeLinecap="round"
           />
         </svg>
-        
+
         {/* Text values inside the circular meter */}
         <div className="absolute inset-0 flex flex-col items-center justify-center -mt-2">
           {isEstimasi ? (
@@ -237,14 +237,13 @@ function CircularGauge({ score, category, isEstimasi }: { score: number | null; 
           )}
         </div>
       </div>
-      
+
       {category && (
         <div className="mt-2 text-center space-y-1.5 z-10">
-          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider shadow-sm border ${
-            category === 'AMAN' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
-            category === 'WASPADA' ? 'bg-amber-50 text-amber-700 border-amber-100' :
-            'bg-rose-50 text-rose-700 border-rose-100'
-          }`}>
+          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider shadow-sm border ${category === 'AMAN' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+              category === 'WASPADA' ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                'bg-rose-50 text-rose-700 border-rose-100'
+            }`}>
             <span className="w-1.5 h-1.5 rounded-full bg-current animate-ping" />
             {category}
           </span>
@@ -262,9 +261,9 @@ function PageContent() {
   const jadwalId = searchParams.get('id');
 
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const [detail, setDetail]   = useState<JadwalDetail | null>(null);
+  const [detail, setDetail] = useState<JadwalDetail | null>(null);
   const [fallback, setFallback] = useState<FuzzyFallback | null>(null);
   const [showTech, setShowTech] = useState(false);
   const [activeTab, setActiveTab] = useState<'umum' | 'nelayan'>('umum');
@@ -298,11 +297,11 @@ function PageContent() {
     : normalizeCategory(fallback?.category);
 
   const toNum = (v: unknown) => { const n = parseFloat(String(v)); return Number.isFinite(n) ? n : null; };
-  const score   = detail ? toNum(detail.skor_fuzzy)      : fallback?.score ?? null;
-  const wave    = detail ? toNum(detail.input_gelombang) : fallback?.inputs?.wave ?? null;
-  const wind    = detail ? toNum(detail.input_angin)     : fallback?.inputs?.wind ?? null;
-  const current = detail ? toNum(detail.input_arus)      : fallback?.inputs?.current ?? null;
-  const isEstimasi  = detail?.isEstimasi ?? false;
+  const score = detail ? toNum(detail.skor_fuzzy) : fallback?.score ?? null;
+  const wave = detail ? toNum(detail.input_gelombang) : fallback?.inputs?.wave ?? null;
+  const wind = detail ? toNum(detail.input_angin) : fallback?.inputs?.wind ?? null;
+  const current = detail ? toNum(detail.input_arus) : fallback?.inputs?.current ?? null;
+  const isEstimasi = detail?.isEstimasi ?? false;
 
   const cfg = category ? (CATEGORY_CONFIG[category as CategoryKey] ?? DEFAULT_CONFIG) : DEFAULT_CONFIG;
 
@@ -320,7 +319,7 @@ function PageContent() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-blue-100">
-      
+
       {/* Inject custom CSS keyframes seamlessly */}
       <style>{`
         @keyframes floatShip {
@@ -350,7 +349,7 @@ function PageContent() {
       `}</style>
 
       <Header />
-      
+
       <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto space-y-8">
 
@@ -373,7 +372,7 @@ function PageContent() {
           <div className={`relative rounded-3xl overflow-hidden shadow-2xl border ${cfg.border} transition-all duration-300 hover:shadow-xl`}>
             {/* Ambient colorful gradients matching the status */}
             <div className={`absolute inset-0 bg-gradient-to-tr ${cfg.gradient} opacity-95`} />
-            
+
             {/* Glass Container */}
             <div className="relative px-6 py-8 sm:px-10 sm:py-10 backdrop-blur-[4px] text-white flex flex-col md:flex-row md:items-center md:justify-between gap-8 z-10">
               <div className="space-y-4 flex-1">
@@ -396,20 +395,19 @@ function PageContent() {
                 <h2 className="text-2xl sm:text-3xl font-black tracking-tight mt-2 leading-none">
                   {headerInfo}
                 </h2>
-                
+
                 {/* Visual Route Representation */}
                 <RouteIllustration asal={detail?.asal || "Pelabuhan Ulee Lheue"} tujuan={detail?.tujuan || "Pelabuhan Balohan"} />
               </div>
-              
+
               {/* Pulsing Status Capsule Tag */}
               <div className="flex items-center gap-4 bg-black/15 border border-white/10 rounded-2xl p-5 shadow-lg self-start md:self-center">
                 <div className="relative flex items-center justify-center w-12 h-12">
                   {/* Glowing Radar Pulse Effect */}
                   <span className="absolute flex h-full w-full">
-                    <span className={`animate-[pulseRadar_2.2s_infinite] absolute inline-flex h-full w-full rounded-full opacity-60 ${
-                      category === 'AMAN' ? 'bg-emerald-400' :
-                      category === 'WASPADA' ? 'bg-amber-400' : 'bg-rose-450'
-                    }`} />
+                    <span className={`animate-[pulseRadar_2.2s_infinite] absolute inline-flex h-full w-full rounded-full opacity-60 ${category === 'AMAN' ? 'bg-emerald-400' :
+                        category === 'WASPADA' ? 'bg-amber-400' : 'bg-rose-450'
+                      }`} />
                   </span>
                   <span className={`relative inline-flex items-center justify-center rounded-full h-12 w-12 text-2xl bg-white/10 border border-white/20 shadow-inner select-none`}>
                     {cfg.icon}
@@ -421,18 +419,16 @@ function PageContent() {
                 </div>
               </div>
             </div>
-            
+
             {/* Recommendation Bottom Bar */}
             <div className="relative bg-white/95 dark:bg-slate-900/95 px-6 py-4.5 sm:px-10 border-t border-slate-100 flex items-center gap-3.5">
               <span className="flex h-3.5 w-3.5 relative">
-                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                  category === 'AMAN' ? 'bg-emerald-400' :
-                  category === 'WASPADA' ? 'bg-amber-400' : 'bg-rose-400'
-                }`} />
-                <span className={`relative inline-flex rounded-full h-3.5 w-3.5 ${
-                  category === 'AMAN' ? 'bg-emerald-500' :
-                  category === 'WASPADA' ? 'bg-amber-500' : 'bg-rose-500'
-                }`} />
+                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${category === 'AMAN' ? 'bg-emerald-400' :
+                    category === 'WASPADA' ? 'bg-amber-400' : 'bg-rose-400'
+                  }`} />
+                <span className={`relative inline-flex rounded-full h-3.5 w-3.5 ${category === 'AMAN' ? 'bg-emerald-500' :
+                    category === 'WASPADA' ? 'bg-amber-500' : 'bg-rose-500'
+                  }`} />
               </span>
               <p className={`text-sm font-extrabold tracking-wide ${cfg.text}`}>{cfg.desc}</p>
             </div>
@@ -495,15 +491,15 @@ function PageContent() {
 
               {/* Layout Dashboard: Kolom 1 (Gauge Score) & Kolom 2 (Cards Inputs) */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
-                
+
                 {/* Gauge Indeks Keselamatan */}
                 <div className="md:col-span-1">
                   <CircularGauge score={score} category={category} isEstimasi={isEstimasi} />
                 </div>
-                
+
                 {/* 3 Parameter Utama */}
                 <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-6">
-                  
+
                   {/* Tinggi Gelombang */}
                   <div className="bg-white rounded-3xl border border-slate-100 shadow-md p-5 flex flex-col justify-between hover:shadow-lg transition-all duration-300 relative overflow-hidden group">
                     <div className="space-y-3">
@@ -529,10 +525,9 @@ function PageContent() {
                             <span>Batas: 4m</span>
                           </div>
                           <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden shadow-inner">
-                            <div className={`h-1.5 rounded-full transition-all duration-500 ${
-                              wave < 1.25 ? 'bg-emerald-500' :
-                              wave < 2.5 ? 'bg-amber-500' : 'bg-rose-500'
-                            }`} style={{ width: `${Math.min((wave / 4.0) * 100, 100)}%` }} />
+                            <div className={`h-1.5 rounded-full transition-all duration-500 ${wave < 1.25 ? 'bg-emerald-500' :
+                                wave < 2.5 ? 'bg-amber-500' : 'bg-rose-500'
+                              }`} style={{ width: `${Math.min((wave / 4.0) * 100, 100)}%` }} />
                           </div>
                         </div>
 
@@ -551,16 +546,15 @@ function PageContent() {
                             />
                           </svg>
                         </div>
-                        
+
                         {/* Badge Tag */}
-                        <div className={`text-center py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border shadow-sm ${
-                          wave < 1.25 ? 'text-emerald-700 bg-emerald-50 border-emerald-100' :
-                          wave < 2.5 ? 'text-amber-700 bg-amber-50 border-amber-100' :
-                          'text-rose-700 bg-rose-50 border-rose-100'
-                        }`}>
+                        <div className={`text-center py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border shadow-sm ${wave < 1.25 ? 'text-emerald-700 bg-emerald-50 border-emerald-100' :
+                            wave < 2.5 ? 'text-amber-700 bg-amber-50 border-amber-100' :
+                              'text-rose-700 bg-rose-50 border-rose-100'
+                          }`}>
                           {wave < 1.25 ? '🟢 Rendah (Aman)' :
-                           wave < 2.5 ? '🟡 Sedang (Waspada)' :
-                           '🔴 Tinggi (Bahaya)'}
+                            wave < 2.5 ? '🟡 Sedang (Waspada)' :
+                              '🔴 Tinggi (Bahaya)'}
                         </div>
                       </div>
                     )}
@@ -575,8 +569,8 @@ function PageContent() {
                       </div>
                       <div>
                         <p className="text-4xl font-black text-slate-800 tracking-tight leading-none">
-                          {wind != null ? wind.toFixed(1) : '—'}
-                          <span className="text-sm font-extrabold text-slate-400 ml-1">knot</span>
+                          {wind != null ? (wind * 1.852).toFixed(1) : '—'}
+                          <span className="text-sm font-extrabold text-slate-400 ml-1">km/jam</span>
                         </p>
                         <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-1">BMKG Wind Velocity</p>
                       </div>
@@ -587,14 +581,13 @@ function PageContent() {
                         {/* Gauge Horizontal */}
                         <div className="space-y-1">
                           <div className="flex justify-between text-[8px] font-black text-slate-400 uppercase tracking-wider">
-                            <span>Aman: &lt;10kt</span>
-                            <span>Batas: 35kt</span>
+                            <span>Aman: &lt;19 km/jam</span>
+                            <span>Batas: 46 km/jam</span>
                           </div>
                           <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden shadow-inner">
-                            <div className={`h-1.5 rounded-full transition-all duration-500 ${
-                              wind < 10 ? 'bg-emerald-500' :
-                              wind < 20 ? 'bg-amber-500' : 'bg-rose-500'
-                            }`} style={{ width: `${Math.min((wind / 35.0) * 100, 100)}%` }} />
+                            <div className={`h-1.5 rounded-full transition-all duration-500 ${wind < 10 ? 'bg-emerald-500' :
+                                wind < 20 ? 'bg-amber-500' : 'bg-rose-500'
+                              }`} style={{ width: `${Math.min((wind * 1.852 / 46.3) * 100, 100)}%` }} />
                           </div>
                         </div>
 
@@ -605,7 +598,7 @@ function PageContent() {
                             <line x1="0" y1="6" x2="100" y2="6" stroke="currentColor" strokeWidth="2" strokeDasharray="8 6" style={{ animation: `currentFlow ${windDuration * 0.8}s linear infinite` }} />
                             <line x1="0" y1="18" x2="100" y2="18" stroke="currentColor" strokeWidth="2" strokeDasharray="12 6" style={{ animation: `currentFlow ${windDuration}s linear infinite` }} />
                           </svg>
-                          
+
                           {/* Small Windmill */}
                           <svg className="w-6 h-6 text-slate-400" viewBox="0 0 24 24">
                             {/* Tower */}
@@ -621,16 +614,15 @@ function PageContent() {
                             </g>
                           </svg>
                         </div>
-                        
+
                         {/* Badge Tag */}
-                        <div className={`text-center py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border shadow-sm ${
-                          wind < 10 ? 'text-emerald-700 bg-emerald-50 border-emerald-100' :
-                          wind < 20 ? 'text-amber-700 bg-amber-50 border-amber-100' :
-                          'text-rose-700 bg-rose-50 border-rose-100'
-                        }`}>
-                          {wind < 10 ? '🟢 Tenang (Aman)' :
-                           wind < 20 ? '🟡 Sedang (Waspada)' :
-                           '🔴 Kencang (Bahaya)'}
+                        <div className={`text-center py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border shadow-sm ${wind < 10 ? 'text-emerald-700 bg-emerald-50 border-emerald-100' :
+                            wind < 20 ? 'text-amber-700 bg-amber-50 border-amber-100' :
+                              'text-rose-700 bg-rose-50 border-rose-100'
+                          }`}>
+                          {wind < 10 ? `🟢 Tenang — ${(wind * 1.852).toFixed(1)} km/jam` :
+                            wind < 20 ? `🟡 Sedang — ${(wind * 1.852).toFixed(1)} km/jam` :
+                              `🔴 Kencang — ${(wind * 1.852).toFixed(1)} km/jam`}
                         </div>
                       </div>
                     )}
@@ -661,10 +653,9 @@ function PageContent() {
                             <span>Batas: 100cm/s</span>
                           </div>
                           <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden shadow-inner">
-                            <div className={`h-1.5 rounded-full transition-all duration-500 ${
-                              current < 25 ? 'bg-emerald-500' :
-                              current < 75 ? 'bg-amber-500' : 'bg-rose-500'
-                            }`} style={{ width: `${Math.min((current / 100.0) * 100, 100)}%` }} />
+                            <div className={`h-1.5 rounded-full transition-all duration-500 ${current < 25 ? 'bg-emerald-500' :
+                                current < 75 ? 'bg-amber-500' : 'bg-rose-500'
+                              }`} style={{ width: `${Math.min((current / 100.0) * 100, 100)}%` }} />
                           </div>
                         </div>
 
@@ -694,16 +685,15 @@ function PageContent() {
                             />
                           </svg>
                         </div>
-                        
+
                         {/* Badge Tag */}
-                        <div className={`text-center py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border shadow-sm ${
-                          current < 25 ? 'text-emerald-700 bg-emerald-50 border-emerald-100' :
-                          current < 75 ? 'text-amber-700 bg-amber-50 border-amber-100' :
-                          'text-rose-700 bg-rose-50 border-rose-100'
-                        }`}>
+                        <div className={`text-center py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border shadow-sm ${current < 25 ? 'text-emerald-700 bg-emerald-50 border-emerald-100' :
+                            current < 75 ? 'text-amber-700 bg-amber-50 border-amber-100' :
+                              'text-rose-700 bg-rose-50 border-rose-100'
+                          }`}>
                           {current < 25 ? '🟢 Lambat (Aman)' :
-                           current < 75 ? '🟡 Sedang (Waspada)' :
-                           '🔴 Cepat (Bahaya)'}
+                            current < 75 ? '🟡 Sedang (Waspada)' :
+                              '🔴 Cepat (Bahaya)'}
                         </div>
                       </div>
                     )}
@@ -724,17 +714,15 @@ function PageContent() {
                     <div className="flex bg-slate-100 p-1 rounded-xl">
                       <button
                         onClick={() => setActiveTab('umum')}
-                        className={`px-4 py-2 text-xs font-black rounded-lg transition-all duration-200 ${
-                          activeTab === 'umum' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'
-                        }`}
+                        className={`px-4 py-2 text-xs font-black rounded-lg transition-all duration-200 ${activeTab === 'umum' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                          }`}
                       >
                         🚢 Penumpang Umum
                       </button>
                       <button
                         onClick={() => setActiveTab('nelayan')}
-                        className={`px-4 py-2 text-xs font-black rounded-lg transition-all duration-200 ${
-                          activeTab === 'nelayan' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'
-                        }`}
+                        className={`px-4 py-2 text-xs font-black rounded-lg transition-all duration-200 ${activeTab === 'nelayan' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                          }`}
                       >
                         🎣 Nelayan & Kapal Kecil
                       </button>
@@ -914,7 +902,7 @@ function PageContent() {
 
         </div>
       </main>
-      
+
       <Footer />
     </div>
   );

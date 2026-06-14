@@ -1,4 +1,4 @@
-﻿import db from '../config/db.js';
+import db from '../config/db.js';
 
 // Get all rute
 export const getAllRute = async (req, res) => {
@@ -13,8 +13,8 @@ export const getAllRute = async (req, res) => {
         r.created_at,
         r.updated_at
       FROM rute_pelayaran r
-      LEFT JOIN Pelabuhan p1 ON r.id_pelabuhan_asal = p1.id_pelabuhan
-      LEFT JOIN Pelabuhan p2 ON r.id_pelabuhan_tujuan = p2.id_pelabuhan
+      LEFT JOIN pelabuhan p1 ON r.id_pelabuhan_asal = p1.id_pelabuhan
+      LEFT JOIN pelabuhan p2 ON r.id_pelabuhan_tujuan = p2.id_pelabuhan
       ORDER BY r.id_rute DESC
     `;
 
@@ -57,8 +57,8 @@ export const getRuteById = async (req, res) => {
         r.created_at,
         r.updated_at
       FROM rute_pelayaran r
-      LEFT JOIN Pelabuhan p1 ON r.id_pelabuhan_asal = p1.id_pelabuhan
-      LEFT JOIN Pelabuhan p2 ON r.id_pelabuhan_tujuan = p2.id_pelabuhan
+      LEFT JOIN pelabuhan p1 ON r.id_pelabuhan_asal = p1.id_pelabuhan
+      LEFT JOIN pelabuhan p2 ON r.id_pelabuhan_tujuan = p2.id_pelabuhan
       WHERE r.id_rute = ?
     `;
 

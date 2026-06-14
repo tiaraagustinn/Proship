@@ -5,7 +5,7 @@ export const getAllKapal = async (req, res) => {
   try {
     const sql = `
       SELECT id_kapal, nama_kapal, tipe_kapal, kapasitas_muatan, kapasitas_kend_r2, kapasitas_kend_r4, kapasitas_penumpang, status_kapal
-      FROM Kapal
+      FROM kapal
       ORDER BY id_kapal DESC
     `;
 
@@ -38,7 +38,7 @@ export const getKapalById = async (req, res) => {
 
     const sql = `
       SELECT id_kapal, nama_kapal, tipe_kapal, kapasitas_muatan, kapasitas_kend_r2, kapasitas_kend_r4, kapasitas_penumpang, status_kapal
-      FROM Kapal
+      FROM kapal
       WHERE id_kapal = ?
     `;
 
@@ -82,7 +82,7 @@ export const createKapal = async (req, res) => {
     }
 
     const insertSql = `
-      INSERT INTO Kapal (nama_kapal, tipe_kapal, kapasitas_muatan, kapasitas_kend_r2, kapasitas_kend_r4, kapasitas_penumpang, status_kapal)
+      INSERT INTO kapal (nama_kapal, tipe_kapal, kapasitas_muatan, kapasitas_kend_r2, kapasitas_kend_r4, kapasitas_penumpang, status_kapal)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
 
@@ -122,7 +122,7 @@ export const updateKapal = async (req, res) => {
     }
 
     const sql = `
-      UPDATE Kapal
+      UPDATE kapal
       SET nama_kapal = ?, tipe_kapal = ?, kapasitas_muatan = ?, kapasitas_kend_r2 = ?, kapasitas_kend_r4 = ?, kapasitas_penumpang = ?, status_kapal = ?
       WHERE id_kapal = ?
     `;
@@ -160,7 +160,7 @@ export const deleteKapal = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const sql = `DELETE FROM Kapal WHERE id_kapal = ?`;
+    const sql = `DELETE FROM kapal WHERE id_kapal = ?`;
 
     db.query(sql, [id], (err, result) => {
       if (err) {

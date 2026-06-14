@@ -31,8 +31,12 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# env files — .env.example boleh di-commit sebagai template
+.env
+.env.local
+.env*.local
+backend/.env
+frontend/.env.local
 
 # vercel
 .vercel

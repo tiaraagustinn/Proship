@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 import React, { useEffect, useState, Suspense } from 'react';
@@ -275,7 +275,7 @@ function PageContent() {
     setError(null);
 
     if (jadwalId) {
-      fetch(`http://localhost:5000/api/jadwal/${jadwalId}/detail`)
+      fetch(`${API_BASE}/jadwal/${jadwalId}/detail`)
         .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
         .then(data => setDetail(data))
         .catch(err => setError(err.message))

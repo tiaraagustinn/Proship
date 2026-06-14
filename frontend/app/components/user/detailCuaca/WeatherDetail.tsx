@@ -1,4 +1,6 @@
-"use client";
+﻿"use client";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 import { useEffect, useMemo, useState } from "react";
 
@@ -133,7 +135,7 @@ export default function WeatherDetail() {
   const [error, setError]      = useState(false);
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/detail/detail-cuaca")
+    fetch(API_BASE + "/detail/detail-cuaca")
       .then(r => r.json())
       .then(d => { setWeatherData(d); setLoading(false); })
       .catch(() => { setError(true); setLoading(false); });

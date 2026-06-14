@@ -1,4 +1,6 @@
-"use client";
+﻿"use client";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Header from '@/app/components/user/Header';
@@ -279,7 +281,7 @@ function PageContent() {
         .catch(err => setError(err.message))
         .finally(() => setLoading(false));
     } else {
-      fetch(${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/fuzzy/evaluate')
+      fetch(API_BASE + '/fuzzy/evaluate')
         .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
         .then(data => setFallback({
           inputs: data.inputs ?? null,

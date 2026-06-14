@@ -1,4 +1,6 @@
-'use client';
+﻿'use client';
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
@@ -123,7 +125,7 @@ const WeatherForecastSection = () => {
     try {
       setLoading(true);
       setError(null);
-      const res = await fetch(${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/maritim-weather/sabang-bandaAceh');
+      const res = await fetch(API_BASE + '/maritim-weather/sabang-bandaAceh');
       if (!res.ok) throw new Error('Gagal mengambil data');
       const data = await res.json();
 

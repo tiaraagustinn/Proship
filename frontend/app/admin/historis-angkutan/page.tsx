@@ -1,4 +1,6 @@
-"use client";
+﻿"use client";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 import { useState, useEffect, useMemo } from 'react';
 import { usePageTitle } from '@/app/admin/layout';
@@ -54,7 +56,7 @@ export default function HistorisPelayaranPage() {
 
   const fetchManifes = () => {
     setLoading(true);
-    fetch(${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/manifes')
+    fetch(API_BASE + '/manifes')
       .then(res => res.json())
       .then(data => { if (data.success) setManifesData(data.data); })
       .catch(err => console.error('Gagal fetch manifes:', err))

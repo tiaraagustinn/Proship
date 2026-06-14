@@ -1,4 +1,6 @@
-"use client";
+﻿"use client";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -36,9 +38,9 @@ export default function AdminDashboardPage() {
     const fetchStats = async () => {
       try {
         const [petugasRes, pelabuhanRes, kapalRes] = await Promise.all([
-          fetch(${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/petugas'),
-          fetch(${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/pelabuhan'),
-          fetch(${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/kapal'),
+          fetch(API_BASE + '/petugas'),
+          fetch(API_BASE + '/pelabuhan'),
+          fetch(API_BASE + '/kapal'),
         ]);
         const petugasJson = await petugasRes.json();
         const pelabuhanJson = await pelabuhanRes.json();

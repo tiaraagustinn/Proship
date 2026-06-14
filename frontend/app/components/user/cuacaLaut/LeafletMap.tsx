@@ -1,4 +1,6 @@
-'use client';
+﻿'use client';
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 import { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, CircleMarker, ZoomControl } from 'react-leaflet';
@@ -134,7 +136,7 @@ export default function LeafletMap() {
   const [lastUpdated, setLastUpdated] = useState('');
 
   useEffect(() => {
-    fetch(${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/maritim-weather/sabang-bandaAceh')
+    fetch(API_BASE + '/maritim-weather/sabang-bandaAceh')
       .then(r => r.json())
       .then(data => {
         // Gabungkan forecast_day1 dan forecast_day2-4 dari struktur API BMKG Maritim baru

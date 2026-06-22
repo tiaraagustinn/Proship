@@ -21,6 +21,7 @@ function formatTanggal(raw: string): string {
 interface ManifesData {
   id: string;
   tanggal: string;
+  jam: string;
   asal: string;
   tujuan: string;
   jmlh_penumpang: number;
@@ -28,7 +29,6 @@ interface ManifesData {
   jmlh_kend_r4: number;
   berat_muatan: number;
   armada: string;
-  load_factor: number;
   kapasitas_kapal: number;
 }
 
@@ -64,7 +64,7 @@ export default function HistorisPelayaranPage() {
     setLoading(true);
     fetch(API_BASE + '/historis')
       .then(res => res.json())
-      .then(data => { if (data.success) setManifesData(data.data.map((h: { id_historis: string; tanggal: string; asal: string; tujuan: string; jmlh_penumpang: number; jmlh_kend_r2: number; jmlh_kend_r4: number; berat_muatan: number; armada: string; load_factor: number; kapasitas_kapal: number }) => ({ ...h, id: h.id_historis }))); })
+      .then(data => { if (data.success) setManifesData(data.data.map((h: { id_historis: string; tanggal: string; jam: string; asal: string; tujuan: string; jmlh_penumpang: number; jmlh_kend_r2: number; jmlh_kend_r4: number; berat_muatan: number; armada: string; load_factor: number; kapasitas_kapal: number }) => ({ ...h, id: h.id_historis }))); })
       .catch(err => console.error('Gagal fetch historis:', err))
       .finally(() => setLoading(false));
   };
@@ -170,12 +170,13 @@ export default function HistorisPelayaranPage() {
     const exportData = selectedIds.length > 0
       ? filteredData.filter(item => selectedIds.includes(item.id))
       : filteredData;
-    const headers = ['Tanggal','Keberangkatan','Tujuan','Penumpang','Roda 2','Roda 4','Muatan (ton)','Armada','Load Factor (%)'];
+    const headers = ['Tanggal','Jam Berangkat','Keberangkatan','Tujuan','Penumpang','Roda 2','Roda 4','Muatan (ton)','Armada'];
     const rows = exportData.map(item => [
       item.tanggal ? item.tanggal.substring(0, 10) : '-',
+      item.jam || '-',
       item.asal, item.tujuan,
       item.jmlh_penumpang, item.jmlh_kend_r2, item.jmlh_kend_r4,
-      item.berat_muatan, item.armada, item.load_factor
+      item.berat_muatan, item.armada
     ]);
     const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -245,6 +246,7 @@ export default function HistorisPelayaranPage() {
                   <input type="checkbox" checked={selectAll} onChange={handleSelectAll} className="w-4 h-4 cursor-pointer" />
                 </th>
                 <th className="p-4 text-left font-semibold text-gray-700">Tanggal</th>
+                <th className="p-4 text-left font-semibold text-gray-700">Jam Berangkat</th>
                 <th className="p-4 text-left font-semibold text-gray-700">Keberangkatan</th>
                 <th className="p-4 text-left font-semibold text-gray-700">Tujuan</th>
                 <th className="p-4 text-left font-semibold text-gray-700">Penumpang</th>
@@ -252,7 +254,6 @@ export default function HistorisPelayaranPage() {
                 <th className="p-4 text-left font-semibold text-gray-700">Roda 4</th>
                 <th className="p-4 text-left font-semibold text-gray-700">Muatan (ton)</th>
                 <th className="p-4 text-left font-semibold text-gray-700">Armada</th>
-                <th className="p-4 text-left font-semibold text-gray-700">Load Factor</th>
                 <th className="p-4 text-center font-semibold text-gray-700">Aksi</th>
               </tr>
             </thead>
@@ -268,6 +269,7 @@ export default function HistorisPelayaranPage() {
                       <input type="checkbox" checked={selectedIds.includes(item.id)} onChange={() => handleSelectRow(item.id)} className="w-4 h-4 cursor-pointer" />
                     </td>
                     <td className="p-4 text-gray-700">{formatTanggal(item.tanggal)}</td>
+                    <td className="p-4 text-gray-700">{item.jam ? item.jam.substring(0, 5) : '-'}</td>
                     <td className="p-4 text-gray-700">{item.asal}</td>
                     <td className="p-4 text-gray-700">{item.tujuan}</td>
                     <td className="p-4 text-gray-700">{item.jmlh_penumpang}</td>
@@ -275,7 +277,6 @@ export default function HistorisPelayaranPage() {
                     <td className="p-4 text-gray-700">{item.jmlh_kend_r4}</td>
                     <td className="p-4 text-gray-700">{item.berat_muatan}</td>
                     <td className="p-4 text-gray-700">{item.armada || '-'}</td>
-                    <td className="p-4 text-gray-700">{item.load_factor != null ? `${item.load_factor}%` : '-'}</td>
                     <td className="p-4">
                       <div className="flex justify-center gap-2">
                         <button onClick={() => handleEdit(item)} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition" title="Edit">

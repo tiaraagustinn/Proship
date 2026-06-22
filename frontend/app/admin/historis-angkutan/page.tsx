@@ -2,9 +2,11 @@
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { usePageTitle } from '@/app/admin/layout';
-import { Edit, Trash2, Filter, X } from 'lucide-react';
+import { Edit, Trash2, Filter, X, ChevronLeft, ChevronRight } from 'lucide-react';
+
+const ITEMS_PER_PAGE = 10;
 
 const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 
@@ -53,6 +55,9 @@ export default function HistorisPelayaranPage() {
   const [filterTahun, setFilterTahun] = useState('');
   const [filterRute, setFilterRute] = useState('');
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+
   useEffect(() => { setTitle('Historis Angkutan'); }, [setTitle]);
 
   const fetchManifes = () => {
@@ -87,12 +92,37 @@ export default function HistorisPelayaranPage() {
     });
   }, [manifesData, filterTahun, filterBulan, filterRute]);
 
+  // Pagination derived
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / ITEMS_PER_PAGE));
+  const pagedData = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredData.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredData, currentPage]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => { setCurrentPage(1); setSelectedIds([]); setSelectAll(false); }, [filterBulan, filterTahun, filterRute]);
+
   const hasFilter = filterBulan || filterTahun || filterRute;
-  const resetFilter = () => { setFilterBulan(''); setFilterTahun(''); setFilterRute(''); setSelectedIds([]); setSelectAll(false); };
+  const resetFilter = () => { setFilterBulan(''); setFilterTahun(''); setFilterRute(''); setSelectedIds([]); setSelectAll(false); setCurrentPage(1); };
+
+  // Pagination page numbers helper
+  const getPageNumbers = useCallback(() => {
+    const pages: (number | '...')[] = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (currentPage > 3) pages.push('...');
+      for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) pages.push(i);
+      if (currentPage < totalPages - 2) pages.push('...');
+      pages.push(totalPages);
+    }
+    return pages;
+  }, [currentPage, totalPages]);
 
   const handleSelectAll = () => {
-    if (selectAll) { setSelectedIds([]); } 
-    else { setSelectedIds(filteredData.map(item => item.id)); }
+    if (selectAll) { setSelectedIds([]); }
+    else { setSelectedIds(pagedData.map(item => item.id)); }
     setSelectAll(!selectAll);
   };
 
@@ -232,7 +262,7 @@ export default function HistorisPelayaranPage() {
               ) : filteredData.length === 0 ? (
                 <tr><td colSpan={11} className="p-8 text-center text-gray-400">{hasFilter ? 'Tidak ada data untuk filter yang dipilih' : 'Belum ada data historis angkutan'}</td></tr>
               ) : (
-                filteredData.map((item, index) => (
+                pagedData.map((item, index) => (
                   <tr key={item.id} className={`border-b border-gray-200 ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-gray-100 transition`}>
                     <td className="p-4">
                       <input type="checkbox" checked={selectedIds.includes(item.id)} onChange={() => handleSelectRow(item.id)} className="w-4 h-4 cursor-pointer" />
@@ -263,6 +293,48 @@ export default function HistorisPelayaranPage() {
           </table>
         </div>
       </div>
+
+      {/* Pagination */}
+      {!loading && filteredData.length > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 px-1">
+          <p className="text-sm text-white/80">
+            Menampilkan {((currentPage - 1) * ITEMS_PER_PAGE) + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, filteredData.length)} dari {filteredData.length} data
+          </p>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="p-2 rounded-lg border border-white/30 text-white hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            {getPageNumbers().map((page, i) =>
+              page === '...' ? (
+                <span key={`ellipsis-${i}`} className="px-2 text-white/60 text-sm">...</span>
+              ) : (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page as number)}
+                  className={`min-w-[36px] h-9 px-2 rounded-lg text-sm font-medium border transition ${
+                    currentPage === page
+                      ? 'bg-white text-gray-800 border-white'
+                      : 'border-white/30 text-white hover:bg-white/20'
+                  }`}
+                >
+                  {page}
+                </button>
+              )
+            )}
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="p-2 rounded-lg border border-white/30 text-white hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {selectedIds.length > 0 && (
         <div className="mt-4 text-sm text-white">{selectedIds.length} item dipilih</div>

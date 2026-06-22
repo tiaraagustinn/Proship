@@ -2,7 +2,7 @@
 
 import { useState, FormEvent, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, Lock, Mail } from 'lucide-react';
+import { User, Lock, Mail, Eye, EyeOff } from 'lucide-react';
 
 const ADMIN_EMAIL = 'admin@dishub-aceh.go.id';
 
@@ -21,6 +21,7 @@ export default function PetugasLoginPage() {
   const [isInactive, setIsInactive] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [showForgot, setShowForgot] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -127,14 +128,23 @@ export default function PetugasLoginPage() {
               <Lock className="w-5 h-5" />
             </div>
             <input
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               name="password"
               placeholder="PASSWORD"
               value={loginData.password}
               onChange={handleInputChange}
-              className="w-full pl-12 pr-4 py-4 bg-blue-900/30 backdrop-blur-md border-2 border-yellow-400 rounded-lg text-white placeholder-blue-300 focus:outline-none focus:border-yellow-300 focus:bg-blue-900/40 transition-all font-medium"
+              className="w-full pl-12 pr-12 py-4 bg-blue-900/30 backdrop-blur-md border-2 border-yellow-400 rounded-lg text-white placeholder-blue-300 focus:outline-none focus:border-yellow-300 focus:bg-blue-900/40 transition-all font-medium"
               required
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(v => !v)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white transition-colors"
+              tabIndex={-1}
+              aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+            >
+              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            </button>
           </div>
 
           {/* Error Message */}

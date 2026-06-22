@@ -11,20 +11,20 @@ export const getManifes = async (req, res) => {
     const sql = `
       SELECT
         id,
-        timestamp_keberangkatan,
+        timestamp,
         jenis_kapal,
         nama_kapal,
         trip_kapal,
         pelabuhan_asal,
         tujuan,
         jumlah_penumpang,
-        kendaraan_gol_II   AS kendaraanRoda2,
-        kendaraan_gol_IV   AS kendaraanRoda4,
+        kendaraan_gol_2    AS kendaraanRoda2,
+        kendaraan_gol_4    AS kendaraanRoda4,
         jumlah_barang_ton  AS beratMuatan,
         kapasitas_kapal,
-        load_factor
+        load_factor_persen AS load_factor
       FROM manifes_angkutan
-      ORDER BY timestamp_keberangkatan DESC
+      ORDER BY timestamp DESC
     `;
     const data = await query(sql);
     res.json({ success: true, data });
@@ -36,28 +36,28 @@ export const getManifes = async (req, res) => {
 // POST /api/manifes
 export const createManifes = async (req, res) => {
   const {
-    timestamp_keberangkatan, jenis_kapal, nama_kapal, trip_kapal,
+    timestamp, jenis_kapal, nama_kapal, trip_kapal,
     pelabuhan_asal, tujuan, jumlah_penumpang,
-    kendaraan_gol_II, kendaraan_gol_IV, jumlah_barang_ton,
-    kapasitas_kapal, load_factor
+    kendaraan_gol_2, kendaraan_gol_4, jumlah_barang_ton,
+    kapasitas_kapal, load_factor_persen
   } = req.body;
 
-  if (!timestamp_keberangkatan || !nama_kapal || !pelabuhan_asal || !tujuan || jumlah_penumpang == null) {
+  if (!timestamp || !nama_kapal || !pelabuhan_asal || !tujuan || jumlah_penumpang == null) {
     return res.status(400).json({ message: 'Field wajib belum lengkap' });
   }
   try {
     const result = await query(
       `INSERT INTO manifes_angkutan
-        (timestamp_keberangkatan, jenis_kapal, nama_kapal, trip_kapal,
+        (timestamp, jenis_kapal, nama_kapal, trip_kapal,
          pelabuhan_asal, tujuan, jumlah_penumpang,
-         kendaraan_gol_II, kendaraan_gol_IV, jumlah_barang_ton,
-         kapasitas_kapal, load_factor)
+         kendaraan_gol_2, kendaraan_gol_4, jumlah_barang_ton,
+         kapasitas_kapal, load_factor_persen)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        timestamp_keberangkatan, jenis_kapal, nama_kapal, trip_kapal || 1,
+        timestamp, jenis_kapal, nama_kapal, trip_kapal || 1,
         pelabuhan_asal, tujuan, jumlah_penumpang,
-        kendaraan_gol_II || 0, kendaraan_gol_IV || 0, jumlah_barang_ton || 0,
-        kapasitas_kapal || 0, load_factor || 0
+        kendaraan_gol_2 || 0, kendaraan_gol_4 || 0, jumlah_barang_ton || 0,
+        kapasitas_kapal || 0, load_factor_persen || 0
       ]
     );
     res.status(201).json({ success: true, message: 'Data berhasil disimpan', id: result.insertId });
@@ -70,25 +70,25 @@ export const createManifes = async (req, res) => {
 export const updateManifes = async (req, res) => {
   const { id } = req.params;
   const {
-    timestamp_keberangkatan, jenis_kapal, nama_kapal, trip_kapal,
+    timestamp, jenis_kapal, nama_kapal, trip_kapal,
     pelabuhan_asal, tujuan, jumlah_penumpang,
-    kendaraan_gol_II, kendaraan_gol_IV, jumlah_barang_ton,
-    kapasitas_kapal, load_factor
+    kendaraan_gol_2, kendaraan_gol_4, jumlah_barang_ton,
+    kapasitas_kapal, load_factor_persen
   } = req.body;
 
   try {
     await query(
       `UPDATE manifes_angkutan SET
-        timestamp_keberangkatan=?, jenis_kapal=?, nama_kapal=?, trip_kapal=?,
+        timestamp=?, jenis_kapal=?, nama_kapal=?, trip_kapal=?,
         pelabuhan_asal=?, tujuan=?, jumlah_penumpang=?,
-        kendaraan_gol_II=?, kendaraan_gol_IV=?, jumlah_barang_ton=?,
-        kapasitas_kapal=?, load_factor=?
+        kendaraan_gol_2=?, kendaraan_gol_4=?, jumlah_barang_ton=?,
+        kapasitas_kapal=?, load_factor_persen=?
        WHERE id=?`,
       [
-        timestamp_keberangkatan, jenis_kapal, nama_kapal, trip_kapal,
+        timestamp, jenis_kapal, nama_kapal, trip_kapal,
         pelabuhan_asal, tujuan, jumlah_penumpang,
-        kendaraan_gol_II, kendaraan_gol_IV, jumlah_barang_ton,
-        kapasitas_kapal, load_factor, id
+        kendaraan_gol_2, kendaraan_gol_4, jumlah_barang_ton,
+        kapasitas_kapal, load_factor_persen, id
       ]
     );
     res.json({ success: true, message: 'Data berhasil diupdate' });
@@ -116,107 +116,68 @@ export const getDashboard = async (req, res) => {
     let whereClause = '';
     let params = [];
     if (from && to) {
-      whereClause = `WHERE tanggal BETWEEN ? AND ?`;
+      whereClause = `WHERE DATE(timestamp) BETWEEN ? AND ?`;
       params = [from, to];
     } else if (from) {
-      whereClause = `WHERE tanggal >= ?`;
+      whereClause = `WHERE DATE(timestamp) >= ?`;
       params = [from];
     } else if (to) {
-      whereClause = `WHERE tanggal <= ?`;
+      whereClause = `WHERE DATE(timestamp) <= ?`;
       params = [to];
     }
 
-    const cte = `
-      WITH AllManifes AS (
-        SELECT
-          jumlah_penumpang,
-          kendaraan_gol_II,
-          kendaraan_gol_IV,
-          jumlah_barang_ton,
-          timestamp_keberangkatan,
-          DATE(timestamp_keberangkatan) AS tanggal,
-          pelabuhan_asal COLLATE utf8mb4_unicode_ci AS asal,
-          tujuan COLLATE utf8mb4_unicode_ci AS tujuan,
-          nama_kapal COLLATE utf8mb4_unicode_ci AS armada
-        FROM manifes_angkutan
-        
-        UNION ALL
-        
-        SELECT
-          h.jmlh_penumpang AS jumlah_penumpang,
-          h.jmlh_kend_r2 AS kendaraan_gol_II,
-          h.jmlh_kend_r4 AS kendaraan_gol_IV,
-          h.berat_muatan AS jumlah_barang_ton,
-          TIMESTAMP(j.tanggal, j.waktu_berangkat) AS timestamp_keberangkatan,
-          j.tanggal AS tanggal,
-          pa.nama_pelabuhan COLLATE utf8mb4_unicode_ci AS asal,
-          pt.nama_pelabuhan COLLATE utf8mb4_unicode_ci AS tujuan,
-          k.nama_kapal COLLATE utf8mb4_unicode_ci AS armada
-        FROM historis_angkutan h
-        JOIN jadwal_pelayaran j ON h.id_jadwal = j.id_jadwal
-        LEFT JOIN rute_pelayaran r ON j.id_rute = r.id_rute
-        LEFT JOIN pelabuhan pa ON r.id_pelabuhan_asal = pa.id_pelabuhan
-        LEFT JOIN pelabuhan pt ON r.id_pelabuhan_tujuan = pt.id_pelabuhan
-        LEFT JOIN kapal k ON j.id_kapal = k.id_kapal
-      )
-    `;
-
-    const baseFrom = `FROM AllManifes ${whereClause}`;
+    const baseFrom = `FROM manifes_angkutan ${whereClause}`;
 
     const [summary, byArah, kapalMonthly, trend] = await Promise.all([
 
       // Ringkasan total
       query(
-        `${cte}
-         SELECT
+        `SELECT
           COALESCE(SUM(jumlah_penumpang), 0)  AS total_penumpang,
-          COALESCE(SUM(kendaraan_gol_II), 0)  AS total_kend_r2,
-          COALESCE(SUM(kendaraan_gol_IV), 0)  AS total_kend_r4,
+          COALESCE(SUM(kendaraan_gol_2), 0)   AS total_kend_r2,
+          COALESCE(SUM(kendaraan_gol_4), 0)   AS total_kend_r4,
           COALESCE(SUM(jumlah_barang_ton), 0) AS total_muatan,
           COUNT(*) AS total_trip
         ${baseFrom}`,
         params
       ),
 
-      // Per arah (Ulee Lheue->Balohan vs Balohan->Ulee Lheue)
+      // Per arah
       query(
-        `${cte}
-         SELECT
-          asal,
+        `SELECT
+          pelabuhan_asal AS asal,
           tujuan,
           COALESCE(SUM(jumlah_penumpang), 0)  AS penumpang,
-          COALESCE(SUM(kendaraan_gol_II), 0)  AS kend_r2,
-          COALESCE(SUM(kendaraan_gol_IV), 0)  AS kend_r4,
+          COALESCE(SUM(kendaraan_gol_2), 0)   AS kend_r2,
+          COALESCE(SUM(kendaraan_gol_4), 0)   AS kend_r4,
           COALESCE(SUM(jumlah_barang_ton), 0) AS muatan,
           COUNT(*) AS total_trip
         ${baseFrom}
-        GROUP BY asal, tujuan`,
+        GROUP BY pelabuhan_asal, tujuan`,
         params
       ),
 
-      // Per kapal per bulan (grouped bar chart)
+      // Per kapal per bulan
       query(
-        `${cte}
-         SELECT
-          armada AS nama_kapal,
-          DATE_FORMAT(timestamp_keberangkatan, '%b %Y') AS bulan,
-          DATE_FORMAT(timestamp_keberangkatan, '%Y-%m') AS sort_key,
+        `SELECT
+          nama_kapal,
+          DATE_FORMAT(timestamp, '%b %Y') AS bulan,
+          DATE_FORMAT(timestamp, '%Y-%m') AS sort_key,
           COALESCE(SUM(jumlah_penumpang), 0) AS penumpang
         ${baseFrom}
-        GROUP BY armada, bulan, sort_key
-        ORDER BY sort_key ASC, armada`,
+        GROUP BY nama_kapal, bulan, sort_key
+        ORDER BY sort_key ASC, nama_kapal`,
         params
       ),
 
-      // Tren bulanan (area chart)
+      // Tren bulanan
       query(
-        `${cte}
-         SELECT
-          DATE_FORMAT(timestamp_keberangkatan, '%b %Y') AS bulan,
-          DATE_FORMAT(timestamp_keberangkatan, '%Y-%m') AS sort_key,
+        `SELECT
+          DATE_FORMAT(timestamp, '%b %Y') AS bulan,
+          DATE_FORMAT(timestamp, '%Y-%m') AS sort_key,
           COALESCE(SUM(jumlah_penumpang), 0)  AS penumpang,
-          COALESCE(SUM(kendaraan_gol_II), 0)  AS kend_r2,
-          COALESCE(SUM(kendaraan_gol_IV), 0)  AS kend_r4
+          COALESCE(SUM(kendaraan_gol_2), 0)   AS kend_r2,
+          COALESCE(SUM(kendaraan_gol_4), 0)   AS kend_r4
         ${baseFrom}
         GROUP BY bulan, sort_key
         ORDER BY sort_key ASC`,

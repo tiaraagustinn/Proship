@@ -29,7 +29,7 @@ function normalizeInputs(entry) {
   };
 }
 
-export async function fetchAndPrepareInputs(url = "https://maritim.bmkg.go.id/marine2026-data/perairan/P.A.04.json") {
+export async function fetchAndPrepareInputs(url = "https://maritim.bmkg.go.id/marine2026-data/perairan_slug/perairan-sabang-banda-aceh.json") {
   const resp = await axios.get(url);
   const data = resp.data;
 

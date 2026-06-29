@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, FormEvent, ChangeEvent, useEffect } from 'react';
 import { usePageTitle } from '@/app/petugas/layout';
@@ -108,21 +108,32 @@ export default function InputHistorisPage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (!selectedJadwal) {
+      showNotification('error', 'Pilih jadwal pelayaran terlebih dahulu.');
+      return;
+    }
     setSubmitting(true);
 
-    const idPetugas = typeof window !== 'undefined' ? sessionStorage.getItem('userId') : null;
+    // Gabungkan tanggal + jam jadwal jadi timestamp
+    const tanggalJadwal = selectedJadwal.tanggal
+      ? String(selectedJadwal.tanggal).substring(0, 10)
+      : selectedTanggal;
+    const jamJadwal = selectedJadwal.jam ? formatJam(selectedJadwal.jam) : '00:00';
+    const timestamp = `${tanggalJadwal} ${jamJadwal}:00`;
 
     try {
-      const response = await fetch(`${API}/historis`, {
+      const response = await fetch(`${API}/manifes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id_jadwal: Number(formData.id_jadwal),
-          id_petugas: idPetugas,
-          jmlh_penumpang: Number(formData.jmlh_penumpang),
-          jmlh_kend_r2: Number(formData.jmlh_kend_r2),
-          jmlh_kend_r4: Number(formData.jmlh_kend_r4),
-          berat_muatan: Number(formData.berat_muatan),
+          timestamp,
+          nama_kapal:       selectedJadwal.armada,
+          pelabuhan_asal:   selectedJadwal.asal,
+          tujuan:           selectedJadwal.tujuan,
+          jumlah_penumpang: Number(formData.jmlh_penumpang),
+          kendaraan_gol_2:  Number(formData.jmlh_kend_r2),
+          kendaraan_gol_4:  Number(formData.jmlh_kend_r4),
+          jumlah_barang_ton: Number(formData.berat_muatan),
         }),
       });
 

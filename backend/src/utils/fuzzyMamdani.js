@@ -173,12 +173,13 @@ function evalMamdaniDebug(wave, wind, current) {
   let den = 0;
 
   for (let z = 0; z <= 100; z += 1) {
-    // Fungsi keanggotaan output disesuaikan dengan threshold:
-    // Aman: 0-29, Waspada: 30-89, Bahaya: 90-100
-    // Intersection dibuat di titik 30 dan 90
-    const amanMF    = trapmf(z, [0,  0,  20,  40]);   // crossover di z=30
-    const waspadaMF = trapmf(z, [20, 40, 80, 100]);   // crossover di z=30 dan z=90
-    const bahayaMF  = trapmf(z, [80, 100, 100, 100]); // crossover di z=90
+    // Fungsi keanggotaan output:
+    // AMAN    : 0–30  (centroid ~15)
+    // WASPADA : 30–90 (centroid ~60)
+    // BAHAYA  : 90–100 (centroid ~95)
+    const amanMF    = trapmf(z, [0,   0,  20,  30]);   // penuh s/d 20, turun ke 0 di 30
+    const waspadaMF = trapmf(z, [20,  30,  80,  90]);   // naik dari 20–30, plateau 30–80, turun ke 0 di 90
+    const bahayaMF  = trapmf(z, [80,  90, 100, 100]);   // naik dari 80–90, penuh s/d 100
 
     let maxVal = 0;
     for (let ri = 0; ri < rules.length; ri++) {

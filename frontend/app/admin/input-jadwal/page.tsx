@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from 'react';
 import { usePageTitle } from '@/app/admin/layout';
@@ -51,6 +51,8 @@ export default function JadwalPage() {
   const [kapalList, setKapalList] = useState<KapalOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const [formData, setFormData] = useState({
     id_rute: '',
@@ -196,6 +198,17 @@ export default function JadwalPage() {
     );
   });
 
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
+  const paginatedData = filteredData.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1);
+  };
+
   const ModalForm = ({ title, onSubmit, onCancel, submitLabel, submitClass }: {
     title: string;
     onSubmit: () => void;
@@ -266,7 +279,7 @@ export default function JadwalPage() {
           type="text"
           placeholder="Cari jadwal"
           value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
+          onChange={handleSearchChange}
           className="px-4 py-3 border border-gray-500 bg-gray-100 rounded-lg w-full sm:w-80 text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-gray-600 shadow-lg"
         />
         <button
@@ -299,7 +312,7 @@ export default function JadwalPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredData.map((item, index) => (
+                {paginatedData.map((item, index) => (
                   <tr key={item.id_jadwal} className={`${index % 2 === 0 ? 'bg-gray-200' : 'bg-white'} hover:bg-gray-100 transition`}>
                     <td className="p-4 text-center text-gray-800 border-r border-gray-300">{item.asal}</td>
                     <td className="p-4 text-center text-gray-800 border-r border-gray-300">{item.tujuan}</td>
@@ -339,7 +352,65 @@ export default function JadwalPage() {
         )}
       </div>
 
-      <div className="mt-4 text-sm text-white">Total {filteredData.length} jadwal</div>
+      {/* Pagination */}
+      {!loading && !error && filteredData.length > 0 && (
+        <div className="mt-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p className="text-sm text-white/80">
+            Menampilkan{' '}
+            <span className="font-semibold text-white">{(currentPage - 1) * itemsPerPage + 1}</span>
+            {' '}–{' '}
+            <span className="font-semibold text-white">{Math.min(currentPage * itemsPerPage, filteredData.length)}</span>
+            {' '}dari{' '}
+            <span className="font-semibold text-white">{filteredData.length}</span>{' '}jadwal
+          </p>
+
+          <div className="flex items-center gap-1">
+            {/* Previous */}
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 rounded-lg text-sm font-medium bg-white/10 text-white hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition"
+            >
+              &laquo;
+            </button>
+
+            {/* Page numbers */}
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+              .reduce<(number | string)[]>((acc, p, idx, arr) => {
+                if (idx > 0 && (p as number) - (arr[idx - 1] as number) > 1) acc.push('...');
+                acc.push(p);
+                return acc;
+              }, [])
+              .map((item, idx) =>
+                item === '...' ? (
+                  <span key={`ellipsis-${idx}`} className="px-2 py-1.5 text-white/60 text-sm">…</span>
+                ) : (
+                  <button
+                    key={item}
+                    onClick={() => setCurrentPage(item as number)}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                      currentPage === item
+                        ? 'bg-white text-[#3D518C] font-bold shadow'
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                  >
+                    {item}
+                  </button>
+                )
+              )}
+
+            {/* Next */}
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1.5 rounded-lg text-sm font-medium bg-white/10 text-white hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition"
+            >
+              &raquo;
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Modals */}
       {showAddModal && (

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -21,11 +21,11 @@ interface TrendPoint {
 
 const BULAN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
-function buildTrendData(historisList: { tanggal: string; jumlahPenumpang: number }[]): TrendPoint[] {
+function buildTrendData(historisList: { tanggal: string; jmlh_penumpang: number }[]): TrendPoint[] {
   const map: Record<string, number> = {};
   historisList.forEach(item => {
     const datePart = String(item.tanggal).substring(0, 7); // "YYYY-MM"
-    map[datePart] = (map[datePart] || 0) + (item.jumlahPenumpang || 0);
+    map[datePart] = (map[datePart] || 0) + (item.jmlh_penumpang || 0);
   });
   return Object.entries(map)
     .sort(([a], [b]) => a.localeCompare(b))

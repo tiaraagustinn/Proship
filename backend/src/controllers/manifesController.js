@@ -142,18 +142,37 @@ export const getDashboard = async (req, res) => {
         params
       ),
 
-      // Per arah
+      // Per arah — normalisasi alias nama pelabuhan sebelum GROUP BY
+      // Sabang = Balohan, Banda Aceh = Ulee Lheue
       query(
         `SELECT
-          pelabuhan_asal AS asal,
-          tujuan,
+          CASE UPPER(TRIM(pelabuhan_asal))
+            WHEN 'SABANG'      THEN 'BALOHAN'
+            WHEN 'BANDA ACEH'  THEN 'ULEE LHEUE'
+            ELSE UPPER(TRIM(pelabuhan_asal))
+          END AS asal,
+          CASE UPPER(TRIM(tujuan))
+            WHEN 'SABANG'      THEN 'BALOHAN'
+            WHEN 'BANDA ACEH'  THEN 'ULEE LHEUE'
+            ELSE UPPER(TRIM(tujuan))
+          END AS tujuan,
           COALESCE(SUM(jumlah_penumpang), 0)  AS penumpang,
           COALESCE(SUM(kendaraan_gol_2), 0)   AS kend_r2,
           COALESCE(SUM(kendaraan_gol_4), 0)   AS kend_r4,
           COALESCE(SUM(jumlah_barang_ton), 0) AS muatan,
           COUNT(*) AS total_trip
         ${baseFrom}
-        GROUP BY pelabuhan_asal, tujuan`,
+        GROUP BY
+          CASE UPPER(TRIM(pelabuhan_asal))
+            WHEN 'SABANG'      THEN 'BALOHAN'
+            WHEN 'BANDA ACEH'  THEN 'ULEE LHEUE'
+            ELSE UPPER(TRIM(pelabuhan_asal))
+          END,
+          CASE UPPER(TRIM(tujuan))
+            WHEN 'SABANG'      THEN 'BALOHAN'
+            WHEN 'BANDA ACEH'  THEN 'ULEE LHEUE'
+            ELSE UPPER(TRIM(tujuan))
+          END`,
         params
       ),
 

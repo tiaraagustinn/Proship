@@ -18,8 +18,16 @@ export const getHistoris = async (req, res) => {
         COALESCE(kendaraan_gol_4, 0)                 AS jmlh_kend_r4,
         DATE_FORMAT(\`timestamp\`, '%Y-%m-%d') AS tanggal,
         TIME_FORMAT(\`timestamp\`, '%H:%i')    AS jam,
-        pelabuhan_asal                               AS asal,
-        tujuan,
+        CASE UPPER(TRIM(pelabuhan_asal))
+          WHEN 'SABANG'     THEN 'BALOHAN'
+          WHEN 'BANDA ACEH' THEN 'ULEE LHEUE'
+          ELSE UPPER(TRIM(pelabuhan_asal))
+        END                                          AS asal,
+        CASE UPPER(TRIM(tujuan))
+          WHEN 'SABANG'     THEN 'BALOHAN'
+          WHEN 'BANDA ACEH' THEN 'ULEE LHEUE'
+          ELSE UPPER(TRIM(tujuan))
+        END                                          AS tujuan,
         nama_kapal                                   AS armada,
         kapasitas_kapal,
         load_factor_persen                           AS load_factor

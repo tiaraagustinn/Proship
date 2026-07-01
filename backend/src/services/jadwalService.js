@@ -1,4 +1,4 @@
-﻿import db from '../config/db.js';
+import db from '../config/db.js';
 import { evalMamdani } from '../utils/fuzzyMamdani.js';
 import { getBmkgEntryForTime } from './bmkgCacheService.js';
 
@@ -200,11 +200,11 @@ export const getJadwalDetail = async (id_jadwal) => {
   }
 
   if (!isEstimasi) {
-    // Jadwal baru dengan data lengkap — hitung rule details
+    // Jadwal baru dengan data lengkap — hitung ulang rule details dan skor terbaru
     try {
       const fuzzy = evalMamdani(wave, wind, curr);
       ruleDetails = fuzzy.ruleDetails;
-      if (!score) score = fuzzy.score;
+      score = fuzzy.score;   // selalu pakai hasil kalkulasi terbaru, bukan nilai lama dari DB
     } catch (_) {}
   }
 

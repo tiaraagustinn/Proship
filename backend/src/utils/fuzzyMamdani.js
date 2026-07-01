@@ -23,8 +23,8 @@ function trimf(x, params) {
 
 const OUTPUT_CENTERS = {
   1: 15,  // AMAN    (center of 0–30)
-  2: 60,  // WASPADA (center of 30–90)
-  3: 95,  // BAHAYA  (center of 90–100)
+  2: 45,  // WASPADA (center of 30–60)
+  3: 85,  // BAHAYA  (center of 70–100)
 };
 
 // ── Rule base ─────────────────────────────────────────────────────────────────
@@ -88,36 +88,35 @@ const rules = [
 //
 // ─── GELOMBANG (meter) — BMKG scale + wave-focused transition ────────────────
 //   Rendah : plateau 0–1.25m (BMKG batas aman), transisi s/d 1.75m
-//            → Di 1.40m: µRendah=0.70 (dominan), µSedang=0.20 (minor)
-//            → Memberi PRIORITAS ke gelombang rendah sebagai faktor utama
-//   Sedang : trimf 1.25–2.75m (peak 2.0m = tengah skala BMKG sedang)
-//   Tinggi : mulai 2.5m, penuh di 3.0m (batas resmi Ferry RoRo)
+//   Sedang : trimf 1.25–2.75m (peak 1.75m)
+//   Tinggi : mulai 2.0m (overlap dengan sedang), penuh di 2.75m (batas Ferry RoRo)
+//            → Di 2.20m: µSedang≈0.37 + µTinggi≈0.27 → kedua rule aktif
 //
 // ─── ANGIN (knot) — BMKG scale ───────────────────────────────────────────────
 //   Tenang  : 0–10kt  (BMKG biru muda–biru)
-//   Sedang  : 8–22kt  (BMKG biru–hijau, peak 15kt)
-//   Kencang : ≥20kt   (BMKG kuning–merah, bahaya di 25kt)
+//   Sedang  : 8–22kt  (BMKG biru–hijau, peak 13kt)
+//   Kencang : mulai overlap 20kt, penuh di 25kt (BMKG standar bahaya Ferry RoRo)
 //
 // ─── ARUS (cm/s) — BMKG scale ────────────────────────────────────────────────
 //   Lemah  : 0–25 cm/s  (BMKG biru muda)
-//   Sedang : 15–55 cm/s (BMKG biru–hijau, peak 40 cm/s)
-//   Kuat   : ≥55 cm/s   (BMKG kuning–coklat, gradual ke 70)
+//   Sedang : 15–55 cm/s (BMKG biru–hijau, peak 35 cm/s)
+//   Kuat   : ≥50 cm/s   (BMKG kuning–coklat, gradual ke 65)
 
 function computeInputMfs(wave, wind, current) {
   const waveMfs = [
     trapmf(wave, [0, 0, 1.25, 1.75]),        // Rendah  : plateau 0–1.25m (BMKG), transisi s/d 1.75m
-    trimf(wave, [1.25, 2.0, 2.75]),           // Sedang  : 1.25–2.75m (peak 2.0m, midpoint BMKG)
-    trapmf(wave, [2.5, 3.0, 6.0, 6.0]),        // Tinggi  : ≥3.0m (batas Ferry RoRo)
+    trimf(wave, [1.25, 1.75, 2.75]),          // Sedang  : 1.25–2.75m (peak 1.75m)
+    trapmf(wave, [2.0, 2.75, 6.0, 6.0]),      // Tinggi  : mulai 2.0m, penuh di 2.75m (overlap dg Sedang)
   ];
   const windMfs = [
-    trapmf(wind, [0, 0, 8.0, 10.0]),           // Tenang  : 0–10 knot (BMKG calm)
-    trimf(wind, [8.0, 15.0, 22.0]),            // Sedang  : 8–22 knot (peak 15kt)
-    trapmf(wind, [20.0, 25.0, 40.0, 40.0]),     // Kencang : ≥20kt (bahaya Ferry RoRo ≥25kt)
+    trapmf(wind, [0, 0, 8.0, 10.0]),          // Tenang  : 0–10 knot (BMKG calm)
+    trimf(wind, [8.0, 13.0, 22.0]),            // Sedang  : 8–22 knot (peak 13kt)
+    trapmf(wind, [20.0, 25.0, 40.0, 40.0]),    // Kencang : mulai overlap 20kt, penuh di 25kt (BMKG bahaya)
   ];
   const currentMfs = [
     trapmf(current, [0, 0, 15.0, 25.0]),         // Lemah  : 0–25 cm/s (BMKG biru)
-    trimf(current, [15.0, 40.0, 60.0]),           // Sedang : 15–60 cm/s (peak 40, diperluas)
-    trapmf(current, [55.0, 70.0, 200.0, 200.0]),   // Kuat   : ≥55 cm/s (gradual ke 70)
+    trimf(current, [15.0, 35.0, 55.0]),           // Sedang : 15–55 cm/s (peak 35)
+    trapmf(current, [50.0, 65.0, 200.0, 200.0]),  // Kuat   : ≥50 cm/s (gradual ke 65)
   ];
   return { waveMfs, windMfs, currentMfs };
 }
@@ -175,11 +174,11 @@ function evalMamdaniDebug(wave, wind, current) {
   for (let z = 0; z <= 100; z += 1) {
     // Fungsi keanggotaan output:
     // AMAN    : 0–30  (centroid ~15)
-    // WASPADA : 30–90 (centroid ~60)
-    // BAHAYA  : 90–100 (centroid ~95)
+    // WASPADA : 20–70 (centroid ~45) — dipersempit agar sensitif terhadap variasi input
+    // BAHAYA  : 60–100 (centroid ~85)
     const amanMF    = trapmf(z, [0,   0,  20,  30]);   // penuh s/d 20, turun ke 0 di 30
-    const waspadaMF = trapmf(z, [20,  30,  80,  90]);   // naik dari 20–30, plateau 30–80, turun ke 0 di 90
-    const bahayaMF  = trapmf(z, [80,  90, 100, 100]);   // naik dari 80–90, penuh s/d 100
+    const waspadaMF = trapmf(z, [20,  30,  60,  70]);   // naik dari 20–30, plateau 30–60, turun ke 0 di 70
+    const bahayaMF  = trapmf(z, [60,  70, 100, 100]);   // naik dari 60–70, penuh s/d 100
 
     let maxVal = 0;
     for (let ri = 0; ri < rules.length; ri++) {
@@ -210,7 +209,7 @@ function evalMamdaniDebug(wave, wind, current) {
     input: { wave: waveNum, wind: windNum, current: currentNum },
     ruleDetails,
     score: Number(score.toFixed(4)),
-    category: score < 30 ? 'AMAN' : score < 90 ? 'WASPADA' : 'BAHAYA',
+    category: score < 30 ? 'AMAN' : score < 70 ? 'WASPADA' : 'BAHAYA',
     defuzz: 'centroid-integral',
   };
 }

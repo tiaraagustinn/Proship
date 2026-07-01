@@ -231,10 +231,9 @@ function CircularGauge({ score, category, isEstimasi }: { score: number | null; 
             </>
           ) : (
             <>
-              <span className="text-4xl font-black text-slate-800 tracking-tight select-none">
-                {score != null ? score.toFixed(1) : '—'}
+              <span className="text-5xl leading-none select-none">
+                {category === 'AMAN' ? '🟢' : category === 'WASPADA' ? '⚠️' : category === 'BAHAYA' ? '🚨' : '🌊'}
               </span>
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Skor Fuzzy</span>
             </>
           )}
         </div>

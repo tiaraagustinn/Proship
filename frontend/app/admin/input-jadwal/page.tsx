@@ -62,6 +62,20 @@ export default function JadwalPage() {
     status_jadwal: 'terjadwal',
   });
 
+  // Date picker state (dd/mm/yyyy)
+  const [selDay, setSelDay] = useState('');
+  const [selMonth, setSelMonth] = useState('');
+  const [selYear, setSelYear] = useState('');
+  const NAMA_BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  const thisYear = new Date().getFullYear();
+  const yearOptions = Array.from({ length: 5 }, (_, i) => String(thisYear - 2 + i));
+  const daysInMonth = (m: string, y: string) => (!m || !y) ? 31 : new Date(parseInt(y), parseInt(m), 0).getDate();
+  const handleDatePick = (d: string, m: string, y: string) => {
+    setSelDay(d); setSelMonth(m); setSelYear(y);
+    if (d && m && y) setFormData(prev => ({ ...prev, tanggal: `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}` }));
+    else setFormData(prev => ({ ...prev, tanggal: '' }));
+  };
+
   useEffect(() => {
     setTitle('Input Jadwal');
     fetchData();
@@ -98,10 +112,13 @@ export default function JadwalPage() {
 
   const handleEdit = (item: JadwalData) => {
     setSelectedId(item.id_jadwal);
+    const tgl = item.tanggal ? String(item.tanggal).substring(0, 10) : '';
+    const [y, m, d] = tgl ? tgl.split('-') : ['', '', ''];
+    setSelDay(d || ''); setSelMonth(m || ''); setSelYear(y || '');
     setFormData({
       id_rute: String(item.id_rute),
       id_kapal: String(item.id_kapal),
-      tanggal: item.tanggal ? String(item.tanggal).substring(0, 10) : '',
+      tanggal: tgl,
       jam: item.jam ? item.jam.substring(0, 5) : '',
       status_jadwal: item.status_jadwal || 'terjadwal',
     });
@@ -119,6 +136,7 @@ export default function JadwalPage() {
 
   const resetForm = () => {
     setFormData({ id_rute: '', id_kapal: '', tanggal: '', jam: '', status_jadwal: 'terjadwal' });
+    setSelDay(''); setSelMonth(''); setSelYear('');
     setSelectedId(null);
   };
 
@@ -237,13 +255,20 @@ export default function JadwalPage() {
         </select>
 
         <label className="block text-sm text-gray-600 mb-1">Tanggal</label>
-        <input
-          type="date"
-          name="tanggal"
-          value={formData.tanggal}
-          onChange={handleChange}
-          className="w-full mb-3 p-2 border rounded"
-        />
+        <div className="flex gap-2 mb-3">
+          <select value={selDay} onChange={e => handleDatePick(e.target.value, selMonth, selYear)} className="border rounded p-2 w-20 bg-white">
+            <option value="">Tgl</option>
+            {Array.from({ length: daysInMonth(selMonth, selYear) }, (_, i) => String(i+1).padStart(2,'0')).map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+          <select value={selMonth} onChange={e => handleDatePick(selDay, e.target.value, selYear)} className="border rounded p-2 flex-1 bg-white">
+            <option value="">Bulan</option>
+            {NAMA_BULAN.map((b, i) => <option key={i} value={String(i+1).padStart(2,'0')}>{b}</option>)}
+          </select>
+          <select value={selYear} onChange={e => handleDatePick(selDay, selMonth, e.target.value)} className="border rounded p-2 w-24 bg-white">
+            <option value="">Tahun</option>
+            {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
+          </select>
+        </div>
 
         <label className="block text-sm text-gray-600 mb-1">Jam Berangkat</label>
         <input

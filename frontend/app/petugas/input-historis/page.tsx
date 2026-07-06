@@ -36,6 +36,13 @@ function formatJam(raw: string): string {
   return raw.substring(0, 5);
 }
 
+const NAMA_BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+function daysInMonth(m: string, y: string): number {
+  if (!m || !y) return 31;
+  return new Date(parseInt(y), parseInt(m), 0).getDate();
+}
+
 export default function InputHistorisPage() {
   const { setTitle } = usePageTitle();
   const [jadwalList, setJadwalList] = useState<JadwalOption[]>([]);
@@ -44,6 +51,14 @@ export default function InputHistorisPage() {
   const [submitting, setSubmitting] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [selectedTanggal, setSelectedTanggal] = useState('');
+
+  // Date picker state
+  const [selDay, setSelDay] = useState('');
+  const [selMonth, setSelMonth] = useState('');
+  const [selYear, setSelYear] = useState('');
+
+  const thisYear = new Date().getFullYear();
+  const yearOptions = Array.from({ length: 5 }, (_, i) => String(thisYear - 2 + i));
 
   const [formData, setFormData] = useState<FormData>({
     id_jadwal: '',
@@ -58,6 +73,17 @@ export default function InputHistorisPage() {
   useEffect(() => {
     setTitle('Input Historis Angkutan Penyeberangan');
   }, [setTitle]);
+
+  const handleTanggalChange = (day: string, month: string, year: string) => {
+    setSelDay(day);
+    setSelMonth(month);
+    setSelYear(year);
+    if (day && month && year) {
+      setSelectedTanggal(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
+    } else {
+      setSelectedTanggal('');
+    }
+  };
 
   useEffect(() => {
     if (!selectedTanggal) {
@@ -102,6 +128,7 @@ export default function InputHistorisPage() {
   const resetForm = () => {
     setFormData({ id_jadwal: '', jmlh_penumpang: '', jmlh_kend_r2: '', jmlh_kend_r4: '', berat_muatan: '' });
     setSelectedTanggal('');
+    setSelDay(''); setSelMonth(''); setSelYear('');
     setJadwalList([]);
     setInputtedJadwalIds(new Set());
   };
@@ -153,6 +180,7 @@ export default function InputHistorisPage() {
 
   const inputClass = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent placeholder-gray-400";
   const labelClass = "block text-sm font-medium text-gray-700 mb-1.5";
+  const selectDateClass = "border border-gray-300 rounded-lg px-3 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white";
 
   return (
     <div className="m-3 md:m-7">
@@ -173,16 +201,44 @@ export default function InputHistorisPage() {
       <div className="bg-white rounded-lg shadow p-4 md:p-8">
         <form onSubmit={handleSubmit} className="space-y-6">
 
-          {/* Pilih Tanggal */}
+          {/* Pilih Tanggal — dd/mm/yyyy dropdown */}
           <div>
             <label className={labelClass}>Tanggal Pelayaran</label>
-            <input
-              type="date"
-              value={selectedTanggal}
-              onChange={e => setSelectedTanggal(e.target.value)}
-              className={inputClass}
-              required
-            />
+            <div className="flex gap-2">
+              <select
+                value={selDay}
+                onChange={e => handleTanggalChange(e.target.value, selMonth, selYear)}
+                className={`${selectDateClass} w-24`}
+                required
+              >
+                <option value="">Tgl</option>
+                {Array.from({ length: daysInMonth(selMonth, selYear) }, (_, i) =>
+                  String(i + 1).padStart(2, '0')
+                ).map(d => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
+              <select
+                value={selMonth}
+                onChange={e => handleTanggalChange(selDay, e.target.value, selYear)}
+                className={`${selectDateClass} flex-1`}
+                required
+              >
+                <option value="">Bulan</option>
+                {NAMA_BULAN.map((b, i) => (
+                  <option key={i} value={String(i + 1).padStart(2, '0')}>{b}</option>
+                ))}
+              </select>
+              <select
+                value={selYear}
+                onChange={e => handleTanggalChange(selDay, selMonth, e.target.value)}
+                className={`${selectDateClass} w-28`}
+                required
+              >
+                <option value="">Tahun</option>
+                {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
+              </select>
+            </div>
           </div>
 
           {/* Pilih Jadwal */}

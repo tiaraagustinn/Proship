@@ -69,7 +69,9 @@ const fmtTime = (s: string) => {
 const fmtDate = (s: string) => {
   const d = parseUtcToWib(s);
   if (!d) return "-";
-  return `${d.getUTCDate()} ${monthsShort[d.getUTCMonth()]}`;
+  const dd = String(d.getUTCDate()).padStart(2, '0');
+  const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+  return `${dd}/${mm}/${d.getUTCFullYear()}`;
 };
 
 const periodLabel = (s: string): { label: string; icon: string; bg: string } => {

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -68,7 +68,9 @@ const addHoursToUtcString = (utcStr: string, hours: number): string => {
 const fmtDate = (s: string): string => {
   const d = parseUtcToWib(s);
   if (!d) return '-';
-  return `${daysShort[d.getUTCDay()]}, ${d.getUTCDate()} ${monthsShort[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+  const dd = String(d.getUTCDate()).padStart(2, '0');
+  const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+  return `${dd}/${mm}/${d.getUTCFullYear()}`;
 };
 
 const fmtTime = (s: string): string => {

@@ -122,11 +122,8 @@ function formatTanggal(iso: string | null) {
   if (!iso) return '—';
   const datePart = iso.includes('T') ? iso.split('T')[0] : iso;
   const [year, month, day] = datePart.split('-');
-  if (!year || !month || !day) {
-    return new Date(iso).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-  }
-  const localDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-  return localDate.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  if (!year || !month || !day) return iso;
+  return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
 }
 
 // ----------------------------------------------------
@@ -311,7 +308,7 @@ function PageContent() {
     : 'Ulee Lheue (Banda Aceh) — Balohan (Sabang)';
   const dateInfo = detail
     ? formatTanggal(detail.tanggal)
-    : new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    : (() => { const n = new Date(); const dd = String(n.getDate()).padStart(2,'0'); const mm = String(n.getMonth()+1).padStart(2,'0'); return `${dd}/${mm}/${n.getFullYear()}`; })();
 
   // Custom keyframe speed values based on physics parameters
   const waveDuration = wave != null ? Math.max(0.8, 6.0 - (wave * 1.6)) : 3.5;
